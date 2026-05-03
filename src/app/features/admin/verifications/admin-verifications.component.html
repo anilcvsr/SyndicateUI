@@ -1,0 +1,61 @@
+<div class="stack">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Pending Verifications</h1>
+      <p class="muted">Review member-submitted payment proofs.</p>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <p class="muted">Loading…</p>
+  } @else if (error()) {
+    <div class="toast toast-error">{{ error() }}</div>
+  } @else if (rows().length === 0) {
+    <div class="card"><p class="muted">🎉 No pending proofs. You're all caught up.</p></div>
+  } @else {
+    <div class="stack">
+      @for (r of rows(); track r.proofId) {
+        <div class="card proof-card">
+          <div class="proof-grid">
+            <div class="proof-preview">
+              @if (isImage(r.fileUrl)) {
+                <a [href]="r.fileUrl" target="_blank" rel="noopener">
+                  <img [src]="r.fileUrl" alt="proof" />
+                </a>
+              } @else {
+                <a class="btn btn-secondary" [href]="r.fileUrl" target="_blank" rel="noopener">📄 Open attachment</a>
+              }
+            </div>
+            <div class="proof-meta">
+              <h3 style="margin:0 0 8px">{{ r.memberCode }} — {{ r.memberName }}</h3>
+              <div class="kv"><span class="muted">Month:</span> {{ r.monthYear | date:'MMM yyyy' }}</div>
+              <div class="kv"><span class="muted">Claimed Amount:</span> {{ r.claimedAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</div>
+              <div class="kv"><span class="muted">Mode:</span> {{ r.paymentMode || '—' }}</div>
+              <div class="kv"><span class="muted">Ref No:</span> {{ r.referenceNo || '—' }}</div>
+              <div class="kv"><span class="muted">Submitted:</span> {{ r.submittedAt | date:'dd MMM yyyy, HH:mm' }}</div>
+
+              @if (rejectingFor() === r.proofId) {
+                <div class="field mt-2">
+                  <label class="label">Rejection Reason</label>
+                  <input class="input" [formControl]="rejectReason" placeholder="Why is this proof being rejected?" />
+                  @if (rejectReason.touched && rejectReason.invalid) {
+                    <span class="field-error">Provide a reason (min 3 chars).</span>
+                  }
+                </div>
+                <div class="row mt-2">
+                  <button class="btn btn-secondary" (click)="rejectingFor.set(null)">Cancel</button>
+                  <button class="btn btn-danger" (click)="confirmReject(r)">Confirm Reject</button>
+                </div>
+              } @else {
+                <div class="row mt-2">
+                  <button class="btn btn-primary" (click)="approve(r)">Approve</button>
+                  <button class="btn btn-secondary" (click)="beginReject(r)">Reject</button>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

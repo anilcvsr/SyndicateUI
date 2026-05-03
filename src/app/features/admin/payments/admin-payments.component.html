@@ -1,0 +1,222 @@
+<div class="stack">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Record Payment</h1>
+      <p class="muted">Log a contribution received from a member — supports multi-month backfills.</p>
+    </div>
+  </header>
+
+  <div class="card">
+    <form [formGroup]="form" (ngSubmit)="save()" class="stack">
+      <div class="grid-2">
+        <div class="field">
+          <label class="label">Member</label>
+          <select class="select" formControlName="memberId">
+            <option [ngValue]="null" disabled>-- Select member --</option>
+            @for (m of members(); track m.memberId) {
+              <option [ngValue]="m.memberId">{{ m.memberCode }} — {{ m.fullName }}</option>
+            }
+          </select>
+          @if (form.controls.memberId.touched && form.controls.memberId.invalid) {
+            <span class="field-error">Select a member.</span>
+          }
+        </div>
+        <div class="field">
+          <label class="label">Date Received</label>
+          <input class="input" type="date" formControlName="dateReceived" />
+        </div>
+        <div class="field">
+          <label class="label">Amount Paid (₹)</label>
+          <input class="input" type="number" min="1" step="1" formControlName="amountPaid" placeholder="1000" />
+          @if (form.controls.amountPaid.touched && form.controls.amountPaid.invalid) {
+            <span class="field-error">Enter a valid positive amount.</span>
+          }
+        </div>
+        <div class="field">
+          <label class="label">Payment Mode</label>
+          <select class="select" formControlName="paymentMode">
+            @for (pm of paymentModes; track pm) { <option [value]="pm">{{ pm }}</option> }
+          </select>
+        </div>
+        <div class="field">
+          <label class="label">Reference No. (optional)</label>
+          <input class="input" formControlName="referenceNo" placeholder="UPI txn / cheque no" />
+        </div>
+        <div class="field">
+          <label class="label">Remarks (optional)</label>
+          <input class="input" formControlName="remarks" />
+        </div>
+      </div>
+
+      <div>
+        <label class="label">Months Paid ({{ selectedMonths().size }} selected)</label>
+        <div class="month-grid">
+          @for (m of monthGrid(); track m.iso) {
+            <button type="button"
+              class="month-chip"
+              [class.selected]="isMonthSelected(m.iso)"
+              (click)="toggleMonth(m.iso)">{{ m.label }}</button>
+          }
+        </div>
+      </div>
+
+      @if (error()) { <div class="toast toast-error">{{ error() }}</div> }
+      @if (success()) {
+        <div class="toast toast-success">
+          ✅ Recorded {{ success()!.length }} month(s) for this member.
+        </div>
+      }
+
+      <div class="row" style="justify-content:flex-end">
+        <button type="submit" class="btn btn-primary" [disabled]="saving()">
+          {{ saving() ? 'Saving...' : 'Record Payment' }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <header class="page-header" style="margin-top: 16px">
+    <div>
+      <h2 class="page-title">Modify Existing Payments</h2>
+      <p class="muted">Select a member to view and correct their recorded payments. All changes are logged.</p>
+    </div>
+  </header>
+
+  <div class="card">
+    <div class="field" style="max-width: 420px">
+      <label class="label">Filter by Member</label>
+      <select class="select"
+              [ngModel]="editFilterMemberId()"
+              (ngModelChange)="onFilterMemberChange($event)"
+              [ngModelOptions]="{ standalone: true }">
+        <option [ngValue]="null">-- Select member --</option>
+        @for (m of members(); track m.memberId) {
+          <option [ngValue]="m.memberId">{{ m.memberCode }} — {{ m.fullName }}</option>
+        }
+      </select>
+    </div>
+
+    @if (loadingExisting()) {
+      <p class="muted">Loading payments...</p>
+    }
+
+    @if (editSuccess()) {
+      <div class="toast toast-success">✅ {{ editSuccess() }}</div>
+    }
+
+    @if (existingPayments().length > 0) {
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Expected</th>
+              <th>Paid</th>
+              <th>Date Paid</th>
+              <th>Mode</th>
+              <th>Reference</th>
+              <th>Status</th>
+              <th>Remarks</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of existingPayments(); track p.paymentId) {
+              <tr>
+                <td>{{ formatMonth(p.monthYear) }}</td>
+                <td>₹{{ p.expectedAmount }}</td>
+                <td>₹{{ p.paidAmount }}</td>
+                <td>{{ p.datePaid ? (p.datePaid | date:'dd MMM yyyy') : '—' }}</td>
+                <td>{{ p.paymentMode || '—' }}</td>
+                <td>{{ p.referenceNo || '—' }}</td>
+                <td><span class="badge badge-{{ p.status | lowercase }}">{{ p.status }}</span></td>
+                <td>{{ p.remarks || '—' }}</td>
+                <td>
+                  <button type="button" class="btn btn-sm" (click)="openEdit(p)">Edit</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else if (editFilterMemberId() && !loadingExisting()) {
+      <p class="muted">No payments recorded for this member yet.</p>
+    }
+  </div>
+
+  @if (editing(); as p) {
+    <div class="modal-backdrop" (click)="cancelEdit()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <header class="modal-header">
+          <h3>Edit Payment — {{ p.memberCode }} / {{ formatMonth(p.monthYear) }}</h3>
+          <button type="button" class="btn-icon" (click)="cancelEdit()" aria-label="Close">×</button>
+        </header>
+
+        <form [formGroup]="editForm" (ngSubmit)="saveEdit()" class="stack">
+          <div class="grid-2">
+            <div class="field">
+              <label class="label">Date Paid</label>
+              <input class="input" type="date" formControlName="datePaid" />
+            </div>
+            <div class="field">
+              <label class="label">Paid Amount (₹)</label>
+              <input class="input" type="number" min="0" step="0.01" formControlName="paidAmount" />
+              @if (editForm.controls.paidAmount.touched && editForm.controls.paidAmount.invalid) {
+                <span class="field-error">Enter a valid non-negative amount.</span>
+              }
+            </div>
+            <div class="field">
+              <label class="label">Payment Mode</label>
+              <select class="select" formControlName="paymentMode">
+                <option [ngValue]="null">—</option>
+                @for (pm of paymentModes; track pm) { <option [value]="pm">{{ pm }}</option> }
+              </select>
+            </div>
+            <div class="field">
+              <label class="label">Reference No.</label>
+              <input class="input" formControlName="referenceNo" />
+            </div>
+            <div class="field" style="grid-column: 1 / -1">
+              <label class="label">Remarks</label>
+              <input class="input" formControlName="remarks" />
+            </div>
+            <div class="field" style="grid-column: 1 / -1">
+              <label class="label">Reason for Change <span class="muted">(recommended)</span></label>
+              <input class="input" formControlName="reason" placeholder="e.g., Corrected amount — receipt mismatch" />
+            </div>
+          </div>
+
+          <div class="info-note">
+            <strong>Note:</strong> Expected amount and Month cannot be changed. Status auto-derives from paid vs. expected.
+          </div>
+
+          @if (editError()) { <div class="toast toast-error">{{ editError() }}</div> }
+
+          @if (auditHistory().length > 0) {
+            <details class="audit-history">
+              <summary>Change History ({{ auditHistory().length }})</summary>
+              <ul class="audit-list">
+                @for (a of auditHistory(); track a.auditLogId) {
+                  <li>
+                    <div class="audit-meta">
+                      <span class="audit-action">{{ a.action }}</span>
+                      <span class="muted">{{ a.createdAt | date:'dd MMM yyyy HH:mm' }}</span>
+                    </div>
+                    <div class="audit-details">{{ a.details }}</div>
+                  </li>
+                }
+              </ul>
+            </details>
+          }
+
+          <div class="row" style="justify-content:flex-end; gap: 8px">
+            <button type="button" class="btn" (click)="cancelEdit()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="editSaving()">
+              {{ editSaving() ? 'Saving...' : 'Save Changes' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

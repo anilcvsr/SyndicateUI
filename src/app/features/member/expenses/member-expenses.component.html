@@ -1,0 +1,102 @@
+<div class="stack">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Group Expenses</h1>
+      <p class="muted">Read-only view of how group funds are spent.</p>
+    </div>
+  </header>
+
+  @if (summary(); as s) {
+    <section class="kpi-grid">
+      <div class="kpi"><p class="kpi-label">Total Collected</p><p class="kpi-value">{{ s.totalCollected | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+      <div class="kpi"><p class="kpi-label">Total Expenses</p><p class="kpi-value expense-amount">{{ s.totalExpenses | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+      <div class="kpi"><p class="kpi-label">Net Balance</p><p class="kpi-value" [class]="netBalanceClass()">{{ s.netBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+      <div class="kpi"><p class="kpi-label">This Month</p><p class="kpi-value expense-amount">{{ s.expensesThisMonth | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+    </section>
+  }
+
+  <section class="card">
+    <h3 class="card-title">Filters</h3>
+    <form [formGroup]="filter" (ngSubmit)="applyFilters()" class="stack">
+      <div class="grid-2">
+        <div class="field">
+          <label class="label">From</label>
+          <input class="input" type="date" formControlName="from" />
+        </div>
+        <div class="field">
+          <label class="label">To</label>
+          <input class="input" type="date" formControlName="to" />
+        </div>
+        <div class="field" style="grid-column: 1 / -1">
+          <label class="label">Search Description</label>
+          <input class="input" type="text" formControlName="q" placeholder="Keyword..." />
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">Categories</label>
+        <div class="row-wrap">
+          @for (c of activeCategories(); track c.categoryId) {
+            <button type="button"
+                    class="chip"
+                    [class.chip-active]="isCategoryFilterSelected(c.categoryId)"
+                    [style.borderColor]="categoryColor(c.categoryId)"
+                    (click)="toggleCategoryFilter(c.categoryId)">
+              {{ c.name }}
+            </button>
+          }
+        </div>
+      </div>
+      <div class="row" style="justify-content:flex-end;gap:8px">
+        <button type="button" class="btn btn-ghost btn-sm" (click)="resetFilters()">Reset</button>
+        <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card">
+    @if (loading()) {
+      <p class="muted">Loading…</p>
+    } @else if (error()) {
+      <div class="toast toast-error">{{ error() }}</div>
+    } @else if (result(); as r) {
+      @if (r.items.length === 0) {
+        <p class="muted">No expenses recorded for these filters.</p>
+      } @else {
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Category</th>
+              <th>Description</th>
+              <th class="text-right">Amount</th>
+              <th>Recorded By</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of r.items; track e.expenseId) {
+              <tr>
+                <td>{{ e.expenseDate | date:'dd MMM yyyy' }}</td>
+                <td>
+                  <span class="cat-chip" [style.backgroundColor]="categoryColor(e.categoryId) + '22'" [style.color]="categoryColor(e.categoryId)">
+                    {{ e.categoryName }}
+                  </span>
+                </td>
+                <td>{{ e.description }}</td>
+                <td class="text-right expense-amount"><strong>{{ e.amount | currency:'INR':'symbol':'1.0-2':'en-IN' }}</strong></td>
+                <td class="muted">{{ e.recordedByName || '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <div class="row" style="justify-content:space-between;margin-top:12px">
+          <span class="muted">Showing {{ r.items.length }} of {{ r.totalCount }} — page {{ r.page }} of {{ totalPages() }}</span>
+          <div class="row" style="gap:6px">
+            <button class="btn btn-ghost btn-sm" (click)="goToPage(r.page - 1)" [disabled]="r.page <= 1">← Prev</button>
+            <button class="btn btn-ghost btn-sm" (click)="goToPage(r.page + 1)" [disabled]="r.page >= totalPages()">Next →</button>
+          </div>
+        </div>
+      }
+    }
+  </section>
+</div>

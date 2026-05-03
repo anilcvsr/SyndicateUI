@@ -1,0 +1,10 @@
+.page-header { display:flex; justify-content:space-between; align-items:flex-end; gap: 12px; flex-wrap: wrap; }
+.page-title { font-size: 22px; font-weight: 700; margin: 0; }
+.grid-wrap { overflow-x: auto; }
+.table.grid th, .table.grid td { white-space: nowrap; }
+.sticky-col { position: sticky; left: 0; background: #fafbfd; z-index: 1; }
+tbody td.sticky-col { background: #fff; }
+.month-head { font-size: 11px !important; }
+.cell { text-align: center; }
+.totals td { background: #f1f4f9; font-weight: 600; }
+.due { color: var(--color-danger); font-weight: 600; }

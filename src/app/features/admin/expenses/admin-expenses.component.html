@@ -1,0 +1,220 @@
+<div class="stack">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Expenses</h1>
+      <p class="muted">Record group expenses. Totals are deducted from collected amount to show Net Balance.</p>
+    </div>
+    <div class="row">
+      <a class="btn btn-ghost" routerLink="/admin/expense-summary">📊 Summary</a>
+      <a class="btn btn-ghost" routerLink="/admin/expense-categories">🏷️ Categories</a>
+      <button class="btn btn-primary" (click)="openAdd()">+ Add Expense</button>
+    </div>
+  </header>
+
+  @if (summary(); as s) {
+    <section class="kpi-grid">
+      <div class="kpi"><p class="kpi-label">Total Collected</p><p class="kpi-value">{{ s.totalCollected | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+      <div class="kpi"><p class="kpi-label">Total Expenses</p><p class="kpi-value expense-amount">{{ s.totalExpenses | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+      <div class="kpi"><p class="kpi-label">Net Balance</p><p class="kpi-value" [class]="netBalanceClass()">{{ s.netBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+      <div class="kpi"><p class="kpi-label">Expenses This Month</p><p class="kpi-value expense-amount">{{ s.expensesThisMonth | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+    </section>
+    @if (s.netBalance < 0) {
+      <div class="toast toast-warning">⚠ Expenses exceed collections by {{ (s.netBalance * -1) | currency:'INR':'symbol':'1.0-0':'en-IN' }}</div>
+    }
+  }
+
+  <section class="card">
+    <h3 class="card-title">Filters</h3>
+    <form [formGroup]="filter" (ngSubmit)="applyFilters()" class="stack">
+      <div class="grid-2">
+        <div class="field">
+          <label class="label">From</label>
+          <input class="input" type="date" formControlName="from" />
+        </div>
+        <div class="field">
+          <label class="label">To</label>
+          <input class="input" type="date" formControlName="to" />
+        </div>
+        <div class="field">
+          <label class="label">Min Amount</label>
+          <input class="input" type="number" formControlName="minAmount" min="0" />
+        </div>
+        <div class="field">
+          <label class="label">Max Amount</label>
+          <input class="input" type="number" formControlName="maxAmount" min="0" />
+        </div>
+        <div class="field" style="grid-column: 1 / -1">
+          <label class="label">Search Description</label>
+          <input class="input" type="text" formControlName="q" placeholder="Keyword in description..." />
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">Categories</label>
+        <div class="row-wrap">
+          @for (c of activeCategories(); track c.categoryId) {
+            <button type="button"
+                    class="chip"
+                    [class.chip-active]="isCategoryFilterSelected(c.categoryId)"
+                    [style.borderColor]="categoryColor(c.categoryId)"
+                    (click)="toggleCategoryFilter(c.categoryId)">
+              {{ c.name }}
+            </button>
+          }
+          @if (activeCategories().length === 0) {
+            <span class="muted">No categories available.</span>
+          }
+        </div>
+      </div>
+      <div class="row" style="justify-content:flex-end;gap:8px">
+        <button type="button" class="btn btn-ghost btn-sm" (click)="resetFilters()">Reset</button>
+        <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card">
+    @if (loading()) {
+      <p class="muted">Loading expenses…</p>
+    } @else if (error()) {
+      <div class="toast toast-error">{{ error() }}</div>
+    } @else if (result(); as r) {
+      @if (r.items.length === 0) {
+        <p class="muted">No expenses recorded for these filters. Click "+ Add Expense" to get started.</p>
+      } @else {
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Category</th>
+              <th>Description</th>
+              <th class="text-right">Amount</th>
+              <th>Recorded By</th>
+              <th>Modified</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of r.items; track e.expenseId) {
+              <tr>
+                <td>{{ e.expenseDate | date:'dd MMM yyyy' }}</td>
+                <td>
+                  <span class="cat-chip" [style.backgroundColor]="categoryColor(e.categoryId) + '22'" [style.color]="categoryColor(e.categoryId)">
+                    {{ e.categoryName }}
+                  </span>
+                </td>
+                <td>{{ e.description }}</td>
+                <td class="text-right expense-amount"><strong>{{ e.amount | currency:'INR':'symbol':'1.0-2':'en-IN' }}</strong></td>
+                <td>{{ e.recordedByName || '—' }}</td>
+                <td class="muted">{{ e.updatedAt | date:'dd MMM HH:mm' }}</td>
+                <td class="text-right">
+                  <button class="btn btn-ghost btn-xs" (click)="openEdit(e)" title="Edit">✏️</button>
+                  <button class="btn btn-ghost btn-xs" (click)="openHistory(e)" title="History">🕓</button>
+                  <button class="btn btn-ghost btn-xs" (click)="confirmDelete(e)" title="Delete">🗑️</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <div class="row" style="justify-content:space-between;margin-top:12px">
+          <span class="muted">Showing {{ r.items.length }} of {{ r.totalCount }} — page {{ r.page }} of {{ totalPages() }}</span>
+          <div class="row" style="gap:6px">
+            <button class="btn btn-ghost btn-sm" (click)="goToPage(r.page - 1)" [disabled]="r.page <= 1">← Prev</button>
+            <button class="btn btn-ghost btn-sm" (click)="goToPage(r.page + 1)" [disabled]="r.page >= totalPages()">Next →</button>
+          </div>
+        </div>
+      }
+    }
+  </section>
+
+  @if (showForm()) {
+    <div class="modal-backdrop" (click)="cancelForm()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h3 class="card-title">{{ editing() ? 'Edit Expense' : 'Add Expense' }}</h3>
+        <form [formGroup]="form" (ngSubmit)="saveForm()" class="stack">
+          <div class="grid-2">
+            <div class="field">
+              <label class="label">Expense Date *</label>
+              <input class="input" type="date" formControlName="expenseDate" [max]="today" />
+            </div>
+            <div class="field">
+              <label class="label">Category *</label>
+              <select class="input" formControlName="categoryId">
+                <option [ngValue]="null" disabled>Select category…</option>
+                @for (c of activeCategories(); track c.categoryId) {
+                  <option [ngValue]="c.categoryId">{{ c.name }}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label class="label">Amount (₹) *</label>
+              <input class="input" type="number" formControlName="amount" min="0.01" step="0.01" max="1000000" />
+            </div>
+            <div class="field"></div>
+            <div class="field" style="grid-column: 1 / -1">
+              <label class="label">Description *</label>
+              <textarea class="input" rows="3" formControlName="description" maxlength="500" placeholder="Brief reason or context…"></textarea>
+            </div>
+          </div>
+          @if (formError()) { <div class="toast toast-error">{{ formError() }}</div> }
+          <div class="row" style="justify-content:flex-end;gap:8px">
+            <button type="button" class="btn btn-ghost" (click)="cancelForm()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="saving()">
+              {{ saving() ? 'Saving…' : (editing() ? 'Update' : 'Save') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (historyFor(); as hf) {
+    <div class="modal-backdrop" (click)="closeHistory()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h3 class="card-title">History — {{ hf.categoryName }} ({{ hf.amount | currency:'INR':'symbol':'1.0-0':'en-IN' }})</h3>
+        <p class="muted">{{ hf.description }}</p>
+        @if (historyLoading()) {
+          <p class="muted">Loading…</p>
+        } @else if (history().length === 0) {
+          <p class="muted">No history entries.</p>
+        } @else {
+          <table class="table">
+            <thead><tr><th>When</th><th>Action</th><th>Details</th></tr></thead>
+            <tbody>
+              @for (h of history(); track h.auditLogId) {
+                <tr>
+                  <td>{{ h.createdAt | date:'dd MMM yyyy HH:mm' }}</td>
+                  <td><span class="badge badge-neutral">{{ h.action }}</span></td>
+                  <td class="muted" style="font-family:monospace;font-size:12px;white-space:pre-wrap">{{ h.details || '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+        <div class="row" style="justify-content:flex-end">
+          <button type="button" class="btn btn-ghost" (click)="closeHistory()">Close</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (deleting(); as d) {
+    <div class="modal-backdrop" (click)="cancelDelete()">
+      <div class="modal" (click)="$event.stopPropagation()" style="max-width:480px">
+        <h3 class="card-title">Delete Expense?</h3>
+        <p>
+          This expense will be removed from totals but retained in audit history.
+          <br /><strong>{{ d.categoryName }}</strong> — {{ d.amount | currency:'INR':'symbol':'1.0-0':'en-IN' }} on {{ d.expenseDate | date:'dd MMM yyyy' }}
+        </p>
+        <div class="field">
+          <label class="label">Reason (optional)</label>
+          <input class="input" [ngModel]="deleteReason()" (ngModelChange)="deleteReason.set($event)" placeholder="Why delete?" />
+        </div>
+        <div class="row" style="justify-content:flex-end;gap:8px">
+          <button type="button" class="btn btn-ghost" (click)="cancelDelete()">Cancel</button>
+          <button type="button" class="btn btn-danger" (click)="performDelete()">Delete</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

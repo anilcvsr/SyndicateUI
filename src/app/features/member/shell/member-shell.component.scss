@@ -1,0 +1,29 @@
+.shell { min-height: 100vh; }
+.topbar {
+  display: flex; align-items: center; gap: 24px;
+  padding: 12px 24px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky; top: 0; z-index: 10;
+}
+.brand { display:flex; align-items: center; gap: 10px; }
+.brand-mark {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: var(--color-primary); color: #fff;
+  display:flex; align-items:center; justify-content:center; font-weight: 700;
+}
+.topnav { display:flex; gap: 4px; flex: 1; flex-wrap: wrap; }
+.nav-link {
+  padding: 6px 12px;
+  border-radius: 6px;
+  color: var(--color-text);
+  font-size: 14px;
+}
+.nav-link:hover { background: #f1f4f9; text-decoration: none; }
+.nav-link.active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+  font-weight: 600;
+}
+.user { display:flex; align-items: center; gap: 10px; font-size: 13px; }
+.content { padding: 24px; max-width: 1100px; margin: 0 auto; }

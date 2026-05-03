@@ -1,0 +1,47 @@
+<div class="stack">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Settings</h1>
+      <p class="muted">Group name, monthly contribution amount, and tracking period.</p>
+    </div>
+  </header>
+
+  <div class="card">
+    @if (loading()) {
+      <p class="muted">Loading…</p>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="save()" class="stack">
+        <div class="grid-2">
+          <div class="field">
+            <label class="label">Group Name</label>
+            <input class="input" formControlName="groupName" />
+          </div>
+          <div class="field">
+            <label class="label">Currency</label>
+            <input class="input" formControlName="currency" maxlength="10" />
+          </div>
+          <div class="field">
+            <label class="label">Fixed Monthly Amount</label>
+            <input class="input" type="number" formControlName="fixedMonthlyAmount" min="1" />
+          </div>
+          <div class="field"></div>
+          <div class="field">
+            <label class="label">Tracking Start</label>
+            <input class="input" type="date" formControlName="trackingStart" />
+          </div>
+          <div class="field">
+            <label class="label">Tracking End</label>
+            <input class="input" type="date" formControlName="trackingEnd" />
+          </div>
+        </div>
+
+        @if (error()) { <div class="toast toast-error">{{ error() }}</div> }
+        @if (success()) { <div class="toast toast-success">{{ success() }}</div> }
+
+        <div class="row" style="justify-content:flex-end">
+          <button type="submit" class="btn btn-primary" [disabled]="saving()">{{ saving() ? 'Saving...' : 'Save Settings' }}</button>
+        </div>
+      </form>
+    }
+  </div>
+</div>

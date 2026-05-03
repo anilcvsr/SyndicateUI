@@ -1,0 +1,98 @@
+<div class="stack">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Expense Categories</h1>
+      <p class="muted">Manage the list of categories used when recording expenses. Seeded categories cannot be deleted but can be deactivated.</p>
+    </div>
+    <div class="row">
+      <a class="btn btn-ghost" routerLink="/admin/expenses">← Back to Expenses</a>
+    </div>
+  </header>
+
+  <section class="card">
+    <h3 class="card-title">Add New Category</h3>
+    <form [formGroup]="addForm" (ngSubmit)="add()" class="row" style="gap:10px;align-items:flex-end;flex-wrap:wrap">
+      <div class="field" style="flex:1;min-width:260px">
+        <label class="label">Category Name *</label>
+        <input class="input" formControlName="name" maxlength="100" placeholder="e.g. Insurance Premium" />
+      </div>
+      <button type="submit" class="btn btn-primary" [disabled]="saving()">+ Add Category</button>
+    </form>
+    @if (success()) { <div class="toast toast-success" style="margin-top:8px">{{ success() }}</div> }
+    @if (error()) { <div class="toast toast-error" style="margin-top:8px">{{ error() }}</div> }
+  </section>
+
+  <section class="card">
+    <h3 class="card-title">All Categories</h3>
+    @if (loading()) {
+      <p class="muted">Loading…</p>
+    } @else if (categories().length === 0) {
+      <p class="muted">No categories yet.</p>
+    } @else {
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of categories(); track c.categoryId) {
+            <tr>
+              <td><strong>{{ c.name }}</strong></td>
+              <td>
+                @if (c.isSystem) {
+                  <span class="badge badge-neutral">🔒 System</span>
+                } @else {
+                  <span class="badge badge-success">👤 Custom</span>
+                }
+              </td>
+              <td>
+                @if (c.isActive) {
+                  <span class="badge badge-success">Active</span>
+                } @else {
+                  <span class="badge badge-danger">Inactive</span>
+                }
+              </td>
+              <td class="muted">{{ c.createdAt | date:'dd MMM yyyy' }}</td>
+              <td class="text-right">
+                <button class="btn btn-ghost btn-sm" (click)="openEdit(c)">Edit</button>
+                <button class="btn btn-ghost btn-sm" (click)="toggleActive(c)" [disabled]="saving()">
+                  {{ c.isActive ? 'Deactivate' : 'Activate' }}
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </section>
+
+  @if (editing(); as e) {
+    <div class="modal-backdrop" (click)="cancelEdit()">
+      <div class="modal" (click)="$event.stopPropagation()" style="max-width:480px">
+        <h3 class="card-title">Edit Category</h3>
+        <form [formGroup]="editForm" (ngSubmit)="saveEdit()" class="stack">
+          <div class="field">
+            <label class="label">Name *</label>
+            <input class="input" formControlName="name" maxlength="100" />
+          </div>
+          <div class="field">
+            <label class="row" style="gap:8px;align-items:center;cursor:pointer">
+              <input type="checkbox" formControlName="isActive" />
+              <span>Active — shown in "Add Expense" dropdown</span>
+            </label>
+          </div>
+          @if (error()) { <div class="toast toast-error">{{ error() }}</div> }
+          <div class="row" style="justify-content:flex-end;gap:8px">
+            <button type="button" class="btn btn-ghost" (click)="cancelEdit()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="saving()">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

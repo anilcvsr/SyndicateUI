@@ -1,0 +1,75 @@
+<div class="stack">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Payment Proofs</h1>
+      <p class="muted">Upload screenshots/receipts to request a payment record.</p>
+    </div>
+  </header>
+
+  <div class="card">
+    <h3 class="card-title">Upload New Proof</h3>
+    <form [formGroup]="form" (ngSubmit)="submit()" class="stack">
+      <div class="grid-2">
+        <div class="field">
+          <label class="label">Month (YYYY-MM)</label>
+          <input class="input" type="month" formControlName="month" />
+        </div>
+        <div class="field">
+          <label class="label">Amount Paid</label>
+          <input class="input" type="number" min="1" formControlName="claimedAmount" />
+        </div>
+        <div class="field">
+          <label class="label">Payment Mode</label>
+          <select class="select" formControlName="paymentMode">
+            @for (pm of paymentModes; track pm) { <option [value]="pm">{{ pm }}</option> }
+          </select>
+        </div>
+        <div class="field">
+          <label class="label">Reference No (optional)</label>
+          <input class="input" formControlName="referenceNo" />
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">Proof File (JPG, PNG, or PDF, max 5 MB)</label>
+        <input class="input" type="file" accept="image/jpeg,image/png,application/pdf" (change)="onFileSelect($event)" />
+        @if (fileError()) { <span class="field-error">{{ fileError() }}</span> }
+        @if (file()) { <span class="muted" style="font-size:12px; display:block; margin-top:4px;">Selected: {{ file()!.name }}</span> }
+      </div>
+
+      @if (error()) { <div class="toast toast-error">{{ error() }}</div> }
+      @if (success()) { <div class="toast toast-success">{{ success() }}</div> }
+
+      <div class="row" style="justify-content:flex-end">
+        <button type="submit" class="btn btn-primary" [disabled]="saving()">{{ saving() ? 'Submitting...' : 'Submit Proof' }}</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3 class="card-title">My Submissions</h3>
+    @if (loading()) {
+      <p class="muted">Loading…</p>
+    } @else if (rows().length === 0) {
+      <p class="muted">No submissions yet.</p>
+    } @else {
+      <table class="table">
+        <thead><tr><th>Month</th><th class="text-right">Amount</th><th>Mode</th><th>Submitted</th><th>Status</th><th>File</th></tr></thead>
+        <tbody>
+          @for (r of rows(); track r.proofId) {
+            <tr>
+              <td>{{ r.monthYear | date:'MMM yyyy' }}</td>
+              <td class="text-right">{{ r.claimedAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
+              <td>{{ r.paymentMode || '—' }}</td>
+              <td>{{ r.submittedAt | date:'dd MMM yyyy' }}</td>
+              <td>
+                <span class="badge" [class]="statusBadge(r.status)">{{ r.status }}</span>
+                @if (r.rejectionReason) { <div class="muted" style="font-size:12px">{{ r.rejectionReason }}</div> }
+              </td>
+              <td><a [href]="r.fileUrl" target="_blank" rel="noopener">Open</a></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

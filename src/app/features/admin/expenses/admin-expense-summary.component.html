@@ -1,0 +1,136 @@
+<div class="stack">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Expense Summary</h1>
+      <p class="muted">Category breakdown, monthly trend and collection vs expense comparison.</p>
+    </div>
+    <div class="row">
+      <a class="btn btn-ghost" routerLink="/admin/expenses">← Back to Expenses</a>
+    </div>
+  </header>
+
+  <section class="card">
+    <div class="row" style="gap:12px;align-items:flex-end;flex-wrap:wrap">
+      <div class="field">
+        <label class="label">From</label>
+        <input class="input" type="date" [ngModel]="from()" (ngModelChange)="from.set($event)" />
+      </div>
+      <div class="field">
+        <label class="label">To</label>
+        <input class="input" type="date" [ngModel]="to()" (ngModelChange)="to.set($event)" />
+      </div>
+      <button class="btn btn-primary btn-sm" (click)="load()">Apply</button>
+    </div>
+  </section>
+
+  @if (loading()) {
+    <p class="muted">Loading…</p>
+  } @else if (error()) {
+    <div class="toast toast-error">{{ error() }}</div>
+  } @else if (summary(); as s) {
+    <section class="kpi-grid">
+      <div class="kpi"><p class="kpi-label">Total Collected</p><p class="kpi-value">{{ s.totalCollected | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+      <div class="kpi"><p class="kpi-label">Total Expenses</p><p class="kpi-value expense-amount">{{ s.totalExpenses | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+      <div class="kpi"><p class="kpi-label">Net Balance</p><p class="kpi-value" [class]="netBalanceClass()">{{ s.netBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+      <div class="kpi"><p class="kpi-label">This Month</p><p class="kpi-value expense-amount">{{ s.expensesThisMonth | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+    </section>
+
+    <div class="two-col">
+      <div class="card">
+        <h3 class="card-title">Category Breakdown</h3>
+        @if (s.categoryBreakdown.length === 0) {
+          <p class="muted">No expenses in this period.</p>
+        } @else {
+          <table class="table">
+            <thead><tr><th>Category</th><th class="text-right">Count</th><th class="text-right">Total</th><th class="text-right">%</th></tr></thead>
+            <tbody>
+              @for (c of s.categoryBreakdown; track c.categoryId) {
+                <tr>
+                  <td>
+                    <span class="cat-chip" [style.backgroundColor]="categoryColor(c.categoryId) + '22'" [style.color]="categoryColor(c.categoryId)">
+                      {{ c.categoryName }}
+                    </span>
+                  </td>
+                  <td class="text-right">{{ c.count }}</td>
+                  <td class="text-right expense-amount">{{ c.totalAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
+                  <td class="text-right">
+                    <div class="pct-bar">
+                      <div class="pct-fill" [style.width.%]="c.percentage" [style.backgroundColor]="categoryColor(c.categoryId)"></div>
+                    </div>
+                    <span class="muted" style="font-size:12px">{{ c.percentage | number:'1.0-1' }}%</span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">Top 5 Expenses</h3>
+        @if (s.top5Expenses.length === 0) {
+          <p class="muted">None yet.</p>
+        } @else {
+          <table class="table">
+            <thead><tr><th>Date</th><th>Category</th><th>Description</th><th class="text-right">Amount</th></tr></thead>
+            <tbody>
+              @for (t of s.top5Expenses; track t.expenseId) {
+                <tr>
+                  <td>{{ t.expenseDate | date:'dd MMM yyyy' }}</td>
+                  <td>{{ t.categoryName }}</td>
+                  <td class="muted" style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.description }}</td>
+                  <td class="text-right expense-amount"><strong>{{ t.amount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </div>
+
+    <section class="card">
+      <h3 class="card-title">Monthly Trend</h3>
+      @if (s.monthlyTrend.length === 0) {
+        <p class="muted">No expenses recorded.</p>
+      } @else {
+        <div class="chart-bars">
+          @for (m of s.monthlyTrend; track m.month) {
+            <div class="chart-col" [title]="monthLabel(m.month) + ' — ' + m.count + ' entries'">
+              <div class="bar-stack" style="justify-content:flex-end">
+                <div class="bar" style="background:#ef4444" [style.height.%]="(m.totalAmount / maxMonthly()) * 100"></div>
+              </div>
+              <span class="chart-label">{{ monthLabel(m.month) }}</span>
+              <span class="chart-pct muted">{{ m.totalAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</span>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="card">
+      <h3 class="card-title">Collection vs Expenses</h3>
+      @if (s.collectionVsExpense.length === 0) {
+        <p class="muted">No data.</p>
+      } @else {
+        <div class="chart-bars">
+          @for (c of s.collectionVsExpense; track c.month) {
+            <div class="chart-col" [title]="monthLabel(c.month) + ' — Net: ' + (c.net | currency:'INR':'symbol':'1.0-0':'en-IN')">
+              <div class="cve-pair">
+                <div class="bar" style="background:#10b981;width:12px" [style.height.%]="(c.collected / maxCvE()) * 100"></div>
+                <div class="bar" style="background:#ef4444;width:12px" [style.height.%]="(c.expenses / maxCvE()) * 100"></div>
+              </div>
+              <span class="chart-label">{{ monthLabel(c.month) }}</span>
+              <span class="chart-pct" [class.danger]="c.net < 0" [class.success]="c.net >= 0">
+                Net {{ c.net | currency:'INR':'symbol':'1.0-0':'en-IN' }}
+              </span>
+            </div>
+          }
+        </div>
+        <div class="legend">
+          <span class="legend-item"><i class="dot" style="background:#10b981"></i>Collected</span>
+          <span class="legend-item"><i class="dot" style="background:#ef4444"></i>Expenses</span>
+        </div>
+      }
+    </section>
+  }
+</div>

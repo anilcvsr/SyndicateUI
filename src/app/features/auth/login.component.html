@@ -1,0 +1,89 @@
+<div class="login-page">
+  <div class="login-card card">
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <div>
+        <h1 class="brand-title">Syndicate</h1>
+        <p class="brand-subtitle muted">Monthly Contributions Tracker</p>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button
+        role="tab"
+        [attr.aria-selected]="tab() === 'admin'"
+        class="tab"
+        [class.active]="tab() === 'admin'"
+        (click)="setTab('admin')"
+        type="button">Admin Login</button>
+      <button
+        role="tab"
+        [attr.aria-selected]="tab() === 'member'"
+        class="tab"
+        [class.active]="tab() === 'member'"
+        (click)="setTab('member')"
+        type="button">Member Login</button>
+    </div>
+
+    @if (tab() === 'admin') {
+      <form [formGroup]="adminForm" (ngSubmit)="submitAdmin()" class="stack">
+        <div class="field">
+          <label class="label" for="email">Email</label>
+          <input id="email" class="input" type="email" autocomplete="username" formControlName="email" placeholder="admin@syndicate.local" />
+          @if (adminForm.controls.email.touched && adminForm.controls.email.errors) {
+            <span class="field-error">Enter a valid email.</span>
+          }
+        </div>
+        <div class="field">
+          <label class="label" for="password">Password</label>
+          <input id="password" class="input" type="password" autocomplete="current-password" formControlName="password" />
+          @if (adminForm.controls.password.touched && adminForm.controls.password.errors) {
+            <span class="field-error">Password must be at least 8 characters.</span>
+          }
+        </div>
+        @if (error()) { <div class="toast toast-error" role="alert">{{ error() }}</div> }
+        <button class="btn btn-primary" type="submit" [disabled]="loading()">
+          {{ loading() ? 'Signing in...' : 'Sign In' }}
+        </button>
+        <a class="muted" href="#" (click)="$event.preventDefault()">Forgot Password?</a>
+      </form>
+    } @else {
+      <form novalidate (ngSubmit)="$event.preventDefault(); otpSent() ? submitOtp() : requestOtp()" class="stack">
+        <div class="field" [formGroup]="memberIdForm">
+          <label class="label" for="phone">Mobile Number</label>
+          <input id="phone" class="input" type="tel" inputmode="tel" formControlName="phone" placeholder="+91 98765 43210" autocomplete="tel" [attr.disabled]="otpSent() ? true : null"/>
+          @if (memberIdForm.controls.phone.touched && memberIdForm.controls.phone.errors) {
+            <span class="field-error">Enter a valid mobile number.</span>
+          }
+        </div>
+
+        @if (otpSent()) {
+          <div class="field" [formGroup]="otpForm">
+            <label class="label" for="otp">6-digit OTP</label>
+            <input id="otp" class="input" type="text" inputmode="numeric" maxlength="6" formControlName="otp" placeholder="000000" autocomplete="one-time-code" />
+            @if (otpForm.controls.otp.touched && otpForm.controls.otp.errors) {
+              <span class="field-error">Enter the 6-digit OTP.</span>
+            }
+            @if (devOtpHint()) {
+              <span class="muted" style="font-size:12px; display:block; margin-top:6px;">
+                Dev OTP: <code>{{ devOtpHint() }}</code>
+              </span>
+            }
+          </div>
+          <div class="row">
+            <button class="btn btn-secondary" type="button" (click)="otpSent.set(false); otpForm.reset()">Change Number</button>
+            <button class="btn btn-ghost btn-sm" type="button" (click)="requestOtp()" [disabled]="resendIn() > 0 || loading()">
+              {{ resendIn() > 0 ? 'Resend in ' + resendIn() + 's' : 'Resend OTP' }}
+            </button>
+          </div>
+        }
+
+        @if (error()) { <div class="toast toast-error" role="alert">{{ error() }}</div> }
+
+        <button class="btn btn-primary" type="button" [disabled]="loading()" (click)="otpSent() ? submitOtp() : requestOtp()">
+          {{ otpSent() ? (loading() ? 'Verifying...' : 'Verify & Sign In') : (loading() ? 'Sending OTP...' : 'Send OTP') }}
+        </button>
+      </form>
+    }
+  </div>
+</div>

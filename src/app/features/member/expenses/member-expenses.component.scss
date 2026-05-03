@@ -1,0 +1,39 @@
+.expense-amount {
+  color: #ef4444;
+}
+
+.kpi-value.success { color: #10b981; }
+.kpi-value.danger { color: #ef4444; }
+
+.cat-chip {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.chip {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 2px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+
+  &:hover { background: #f9fafb; }
+
+  &.chip-active {
+    background: #eef2ff;
+    border-color: #6366f1;
+    color: #4338ca;
+    font-weight: 600;
+  }
+}
+
+.row-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

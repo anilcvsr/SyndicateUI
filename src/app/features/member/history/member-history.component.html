@@ -1,0 +1,32 @@
+<div class="stack">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Payment History</h1>
+      <p class="muted">All months from your join date through the tracking period.</p>
+    </div>
+  </header>
+
+  <div class="card">
+    @if (loading()) {
+      <p class="muted">Loading…</p>
+    } @else if (error()) {
+      <div class="toast toast-error">{{ error() }}</div>
+    } @else {
+      <table class="table">
+        <thead><tr><th>Month</th><th class="text-right">Expected</th><th class="text-right">Paid</th><th>Date Paid</th><th>Status</th><th>Remarks</th></tr></thead>
+        <tbody>
+          @for (h of rows(); track h.month) {
+            <tr>
+              <td>{{ h.month | date:'MMM yyyy' }}</td>
+              <td class="text-right">{{ h.expected | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
+              <td class="text-right">{{ h.paid | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
+              <td>{{ h.datePaid ? (h.datePaid | date:'dd MMM yyyy') : '—' }}</td>
+              <td><span class="badge" [class]="statusBadge(h.status)">{{ statusChar(h.status) }} {{ h.status }}</span></td>
+              <td class="muted">{{ h.remarks || '' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

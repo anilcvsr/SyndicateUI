@@ -1,0 +1,111 @@
+<div class="stack">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Dashboard</h1>
+      <p class="muted">Collections overview — year to date</p>
+    </div>
+    <div class="row">
+      <a class="btn btn-primary" routerLink="/admin/payments">+ Record Payment</a>
+      <a class="btn btn-secondary" routerLink="/admin/members">+ Add Member</a>
+      <a class="btn btn-secondary" routerLink="/admin/expenses">+ Add Expense</a>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="kpi-grid">
+      @for (i of [1,2,3,4,5,6]; track i) {
+        <div class="kpi"><span class="skeleton" style="width:80px"></span><p class="kpi-value"><span class="skeleton" style="width:120px;min-height:22px"></span></p></div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="toast toast-error">{{ error() }}</div>
+  } @else if (summary()) {
+    <section class="kpi-grid">
+      <div class="kpi"><p class="kpi-label">Total Members</p><p class="kpi-value">{{ summary()!.totalMembers }}</p></div>
+      <div class="kpi"><p class="kpi-label">Expected YTD</p><p class="kpi-value">{{ summary()!.totalExpectedYtd | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+      <div class="kpi"><p class="kpi-label">Collected YTD</p><p class="kpi-value">{{ summary()!.totalCollectedYtd | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+      <div class="kpi"><p class="kpi-label">Outstanding</p><p class="kpi-value">{{ summary()!.totalOutstanding | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+      <div class="kpi"><p class="kpi-label">Collection Rate</p><p class="kpi-value">{{ summary()!.collectionRatePct | number:'1.0-1' }}%</p></div>
+      <div class="kpi"><p class="kpi-label">Overdue (>3 mo)</p><p class="kpi-value">{{ summary()!.membersOverdue }}</p></div>
+    </section>
+
+    @if (expenseSummary(); as e) {
+      <section class="kpi-grid">
+        <div class="kpi"><p class="kpi-label">Total Expenses YTD</p><p class="kpi-value" style="color:#ef4444">{{ e.totalExpenses | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+        <div class="kpi"><p class="kpi-label">Net Balance</p><p class="kpi-value" [class]="netBalanceClass()">{{ e.netBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+        <div class="kpi"><p class="kpi-label">Expenses This Month</p><p class="kpi-value" style="color:#ef4444">{{ e.expensesThisMonth | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+        <div class="kpi"><p class="kpi-label">&nbsp;</p><p class="kpi-value" style="font-size:14px"><a routerLink="/admin/expense-summary" class="btn btn-ghost btn-sm">View Expense Summary →</a></p></div>
+      </section>
+      @if (e.netBalance < 0) {
+        <div class="toast toast-error">⚠ Expenses exceed collections by {{ (e.netBalance * -1) | currency:'INR':'symbol':'1.0-0':'en-IN' }}</div>
+      }
+    }
+
+    <section class="card">
+      <h3 class="card-title">Monthly Collection Trend</h3>
+      @if (monthly().length === 0) {
+        <p class="muted">No data yet for the tracking period.</p>
+      } @else {
+        <div class="chart-bars">
+          @for (m of monthly(); track m.month) {
+            <div class="chart-col" [title]="monthLabel(m.month) + ' — Collected ' + m.collectionPct + '%'">
+              <div class="bar-stack">
+                <div class="bar bar-expected" [style.height.%]="(m.expected / maxCollected()) * 100"></div>
+                <div class="bar bar-collected" [style.height.%]="(m.collected / maxCollected()) * 100"></div>
+              </div>
+              <span class="chart-label">{{ monthLabel(m.month) }}</span>
+              <span class="chart-pct muted">{{ m.collectionPct | number:'1.0-0' }}%</span>
+            </div>
+          }
+        </div>
+        <div class="legend">
+          <span class="legend-item"><i class="dot expected"></i>Expected</span>
+          <span class="legend-item"><i class="dot collected"></i>Collected</span>
+        </div>
+      }
+    </section>
+
+    <section class="two-col">
+      <div class="card">
+        <h3 class="card-title">Member Status</h3>
+        <div class="donut-row">
+          <div class="status-pill badge badge-danger">🔴 Overdue: {{ summary()!.membersOverdue }}</div>
+          <div class="status-pill badge badge-warning">🟡 Partial: {{ summary()!.membersPartial }}</div>
+          <div class="status-pill badge badge-success">🟢 On Track: {{ summary()!.membersOnTrack }}</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">Pending Dues Report</h3>
+        <div class="row-wrap" style="margin-bottom:10px">
+          <button class="btn btn-sm" [class.btn-primary]="priorityFilter()==='ALL'" [class.btn-secondary]="priorityFilter()!=='ALL'" (click)="priorityFilter.set('ALL')">All</button>
+          <button class="btn btn-sm" [class.btn-primary]="priorityFilter()==='HIGH'" [class.btn-secondary]="priorityFilter()!=='HIGH'" (click)="priorityFilter.set('HIGH')">🔴 High</button>
+          <button class="btn btn-sm" [class.btn-primary]="priorityFilter()==='MED'" [class.btn-secondary]="priorityFilter()!=='MED'" (click)="priorityFilter.set('MED')">🟡 Medium</button>
+          <button class="btn btn-sm" [class.btn-primary]="priorityFilter()==='LOW'" [class.btn-secondary]="priorityFilter()!=='LOW'" (click)="priorityFilter.set('LOW')">🟢 Low</button>
+        </div>
+
+        @if (topDues().length === 0) {
+          <p class="muted">🎉 No pending dues — everyone is up to date.</p>
+        } @else {
+          <table class="table">
+            <thead>
+              <tr><th>Priority</th><th>Member</th><th>Months</th><th class="text-right">Due</th><th>Last Paid</th></tr>
+            </thead>
+            <tbody>
+              @for (d of topDues(); track d.memberId) {
+                <tr (click)="drillToMember(d)" style="cursor:pointer">
+                  <td><span class="badge" [class]="priorityBadge(d.priority)">{{ priorityEmoji(d.priority) }} {{ d.priority }}</span></td>
+                  <td><strong>{{ d.memberName }}</strong></td>
+                  <td>{{ d.monthsPending }}</td>
+                  <td class="text-right">{{ d.totalDue | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
+                  <td>{{ d.lastPaymentDate ? (d.lastPaymentDate | date:'dd MMM yyyy') : '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          <a class="btn btn-ghost btn-sm mt-2" routerLink="/admin/dues">View full report →</a>
+        }
+      </div>
+    </section>
+  }
+</div>

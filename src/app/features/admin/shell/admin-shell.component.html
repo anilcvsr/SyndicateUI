@@ -1,0 +1,32 @@
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <div>
+        <div class="brand-name">Syndicate</div>
+        <div class="brand-role muted">Admin Console</div>
+      </div>
+    </div>
+    <nav>
+      @for (item of nav; track item.path) {
+        <a [routerLink]="item.path" routerLinkActive="active" class="nav-link">
+          <span class="icon">{{ item.icon }}</span>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user">
+        <div class="avatar">{{ auth.displayName().charAt(0) || 'A' }}</div>
+        <div>
+          <div class="user-name">{{ auth.displayName() || 'Admin' }}</div>
+          <div class="user-role muted">Administrator</div>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm" (click)="logout()">Logout</button>
+    </div>
+  </aside>
+  <main class="content">
+    <router-outlet />
+  </main>
+</div>

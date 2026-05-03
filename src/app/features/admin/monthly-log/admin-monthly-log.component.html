@@ -1,0 +1,54 @@
+<div class="stack">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Monthly Log</h1>
+      <p class="muted">Full contribution grid — members × months.</p>
+    </div>
+  </header>
+
+  <div class="card">
+    @if (loading()) {
+      <p class="muted">Loading grid…</p>
+    } @else if (error()) {
+      <div class="toast toast-error">{{ error() }}</div>
+    } @else if (data()) {
+      <div class="grid-wrap">
+        <table class="table grid">
+          <thead>
+            <tr>
+              <th class="sticky-col">Member</th>
+              @for (m of data()!.months; track m) {
+                <th class="month-head">{{ monthLabel(m) }}</th>
+              }
+              <th class="text-right">Expected</th>
+              <th class="text-right">Paid</th>
+              <th class="text-right">Due</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of data()!.rows; track row.memberId) {
+              <tr>
+                <td class="sticky-col"><strong>{{ row.memberName }}</strong></td>
+                @for (c of row.cells; track c.month) {
+                  <td class="cell" [title]="c.status + ': ₹' + c.paid + ' / ₹' + c.expected">{{ cellChar(c.status) }}</td>
+                }
+                <td class="text-right">{{ row.totalExpected | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
+                <td class="text-right">{{ row.totalPaid | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
+                <td class="text-right" [class.due]="row.totalDue > 0">{{ row.totalDue | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
+              </tr>
+            }
+            <tr class="totals">
+              <td class="sticky-col"><strong>Collected</strong></td>
+              @for (t of data()!.columnTotals; track t.month) {
+                <td class="text-right" style="font-size:11px">
+                  ₹{{ t.collected }}
+                </td>
+              }
+              <td></td><td></td><td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>
