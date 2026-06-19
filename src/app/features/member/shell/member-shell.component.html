@@ -5,7 +5,7 @@
       <strong>Syndicate</strong>
     </div>
     <nav class="topnav">
-      @for (item of nav; track item.path) {
+      @for (item of nav(); track item.path) {
         <a [routerLink]="item.path" routerLinkActive="active" class="nav-link">
           <span>{{ item.icon }}</span> {{ item.label }}
         </a>

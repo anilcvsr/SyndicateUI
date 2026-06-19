@@ -17,6 +17,12 @@ export interface MemberHomeSummaryDto {
   groupCollectionPct: number;
   groupExpected: number;
   groupCollected: number;
+  groupTotalCollected: number;
+  groupTotalExpenses: number;
+  groupInterestPaid: number;
+  groupOutstandingLoans: number;
+  groupNetBalance: number;
+  allowMemberPaymentSubmission: boolean;
 }
 
 export interface MemberPaymentHistoryItemDto {

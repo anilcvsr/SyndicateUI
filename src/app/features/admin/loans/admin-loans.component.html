@@ -1,0 +1,556 @@
+<div class="stack">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Loans</h1>
+      <p class="muted">Issue and track loans given to members from the collected fund.</p>
+    </div>
+    <div class="row">
+      <a class="btn btn-ghost" routerLink="/admin/loan-summary">📊 Summary</a>
+      <button class="btn btn-ghost" (click)="runMarkOverdue()" title="Run overdue job">⏰ Run Overdue</button>
+      <button class="btn btn-ghost" (click)="openReconcile()" title="Reconcile loan statuses">🔧 Reconcile</button>
+      <button class="btn btn-ghost" (click)="exportCsv()" title="Export CSV">⬇ Export</button>
+      <button class="btn btn-primary" (click)="openAdd()">+ Issue Loan</button>
+    </div>
+  </header>
+
+  @if (infoToast(); as msg) {
+    <div class="toast toast-info" (click)="infoToast.set(null)" style="cursor:pointer">{{ msg }}</div>
+  }
+
+  @if (summary(); as s) {
+    <section class="kpi-grid">
+      <div class="kpi"><p class="kpi-label">Loans Issued</p><p class="kpi-value">{{ s.totalLoansIssuedAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p><p class="muted">{{ s.totalLoansIssuedCount }} loan(s)</p></div>
+      <div class="kpi"><p class="kpi-label">Outstanding</p><p class="kpi-value danger">{{ s.totalOutstanding | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+      <div class="kpi"><p class="kpi-label">Interest Earned</p><p class="kpi-value success">{{ s.totalInterestEarned | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+      <div class="kpi"><p class="kpi-label">Available After Loans</p><p class="kpi-value" [class]="s.availableFundAfterLoans < 0 ? 'danger' : 'success'">{{ s.availableFundAfterLoans | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+      <div class="kpi"><p class="kpi-label">Overdue</p><p class="kpi-value danger">{{ s.overdueAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p><p class="muted">{{ s.overdueCount }} loan(s)</p></div>
+      <div class="kpi"><p class="kpi-label">Repaid (Principal)</p><p class="kpi-value success">{{ s.totalRepaidPrincipal | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+    </section>
+    @if (s.overdueCount > 0) {
+      <div class="toast toast-warning">⚠ {{ s.overdueCount }} loan(s) are overdue with {{ s.overdueAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }} outstanding.</div>
+    }
+  }
+
+  <section class="card">
+    <h3 class="card-title">Filters</h3>
+    <form [formGroup]="filter" (ngSubmit)="applyFilters()" class="stack">
+      <div class="grid-2">
+        <div class="field">
+          <label class="label">Member</label>
+          <select class="input" formControlName="memberId">
+            <option [ngValue]="null">All members</option>
+            @for (m of activeMembers(); track m.memberId) {
+              <option [ngValue]="m.memberId">{{ m.fullName }} ({{ m.memberCode }})</option>
+            }
+          </select>
+        </div>
+        <div class="field">
+          <label class="label">Search</label>
+          <input class="input" type="text" formControlName="q" placeholder="Loan code, purpose, remarks..." />
+        </div>
+        <div class="field">
+          <label class="label">From (Release Date)</label>
+          <input class="input" type="date" formControlName="from" />
+        </div>
+        <div class="field">
+          <label class="label">To (Release Date)</label>
+          <input class="input" type="date" formControlName="to" />
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">Status</label>
+        <div class="row-wrap">
+          @for (s of statusOptions; track s) {
+            <button type="button" class="chip"
+                    [class.chip-active]="isStatusFilterSelected(s)"
+                    (click)="toggleStatusFilter(s)">
+              {{ statusLabel(s) }}
+            </button>
+          }
+          <label class="chip" style="cursor:pointer">
+            <input type="checkbox" formControlName="overdueOnly" /> Overdue only
+          </label>
+        </div>
+      </div>
+      <div class="row" style="justify-content:flex-end;gap:8px">
+        <button type="button" class="btn btn-ghost btn-sm" (click)="resetFilters()">Reset</button>
+        <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card">
+    @if (loading()) {
+      <p class="muted">Loading loans…</p>
+    } @else if (error()) {
+      <div class="toast toast-error">{{ error() }}</div>
+    } @else if (result(); as r) {
+      @if (r.items.length === 0) {
+        <p class="muted">No loans found. Click "+ Issue Loan" to create one.</p>
+      } @else {
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Member</th>
+              <th class="text-right">Principal</th>
+              <th class="text-right">Interest</th>
+              <th>Release</th>
+              <th>Due</th>
+              <th>Status</th>
+              <th class="text-right">Paid</th>
+              <th class="text-right">Outstanding</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (l of r.items; track l.loanId) {
+              <tr [class.row-overdue]="l.status === 'Overdue'">
+                <td><strong>{{ l.loanCode }}</strong></td>
+                <td>{{ l.memberName }} <span class="muted">({{ l.memberCode }})</span></td>
+                <td class="text-right"><strong>{{ l.principalAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong></td>
+                <td class="text-right">
+                  {{ l.interestAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}
+                  <div class="muted" style="font-size:11px">{{ l.interestRate }}% {{ l.interestType === 'MonthlyRecurring' ? '/mo' : 'flat' }}</div>
+                </td>
+                <td>{{ l.releaseDate | date:'dd MMM yyyy' }}</td>
+                <td>
+                  {{ l.expectedReturnDate | date:'dd MMM yyyy' }}
+                  @if (l.daysOverdue && l.daysOverdue > 0) {
+                    <div class="muted" style="color:#ef4444;font-size:11px">{{ l.daysOverdue }}d late</div>
+                  }
+                </td>
+                <td><span class="badge" [class]="statusClass(l.status)">{{ statusLabel(l.status) }}</span></td>
+                <td class="text-right success">{{ l.amountPaidSoFar | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
+                <td class="text-right" [class.danger]="l.outstandingBalance > 0">
+                  <strong>{{ l.outstandingBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong>
+                </td>
+                <td class="text-right">
+                  <button class="btn btn-ghost btn-xs" (click)="openDetail(l)" title="Details">👁</button>
+                  @if (l.status !== 'Closed') {
+                    <button class="btn btn-ghost btn-xs" (click)="openRepayment(l)" title="Record Repayment">💵</button>
+                  }
+                  @if (!isEditLocked(l)) {
+                    <button class="btn btn-ghost btn-xs" (click)="openEdit(l)" title="Edit">✏️</button>
+                  }
+                  <button class="btn btn-ghost btn-xs" (click)="confirmDelete(l)" title="Delete">🗑️</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <div class="row" style="justify-content:space-between;margin-top:12px">
+          <span class="muted">Showing {{ r.items.length }} of {{ r.totalCount }} — page {{ r.page }} of {{ totalPages() }}</span>
+          <div class="row" style="gap:6px">
+            <button class="btn btn-ghost btn-sm" (click)="goToPage(r.page - 1)" [disabled]="r.page <= 1">← Prev</button>
+            <button class="btn btn-ghost btn-sm" (click)="goToPage(r.page + 1)" [disabled]="r.page >= totalPages()">Next →</button>
+          </div>
+        </div>
+      }
+    }
+  </section>
+
+  @if (showForm()) {
+    <div class="modal-backdrop" (click)="cancelForm()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h3 class="card-title">{{ editing() ? 'Edit Loan' : 'Issue Loan' }}</h3>
+        <form [formGroup]="form" (ngSubmit)="saveForm()" class="stack">
+          <div class="grid-2">
+            <div class="field">
+              <label class="label">Member *</label>
+              <select class="input" formControlName="memberId" [attr.disabled]="editing() ? true : null">
+                <option [ngValue]="null" disabled>Select member…</option>
+                @for (m of activeMembers(); track m.memberId) {
+                  <option [ngValue]="m.memberId">{{ m.fullName }} ({{ m.memberCode }})</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label class="label">Principal Amount (₹) *</label>
+              <input class="input" type="number" formControlName="principalAmount" min="1" step="0.01" />
+            </div>
+            <div class="field">
+              <label class="label">Interest Rate (%) *</label>
+              <input class="input" type="number" formControlName="interestRate" min="0" max="100" step="0.01" />
+            </div>
+            <div class="field">
+              <label class="label">Interest Type *</label>
+              <select class="input" formControlName="interestType">
+                <option value="Simple">Simple (flat)</option>
+                <option value="MonthlyRecurring">Monthly Recurring</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="label">Release Date *</label>
+              <input class="input" type="date" formControlName="releaseDate" />
+            </div>
+            <div class="field">
+              <label class="label">Expected Return Date *</label>
+              <input class="input" type="date" formControlName="expectedReturnDate" />
+            </div>
+            <div class="field">
+              <label class="label">Repayment Mode *</label>
+              <select class="input" formControlName="repaymentMode">
+                <option value="Full">Full (lump sum)</option>
+                <option value="Installment">Installment</option>
+              </select>
+            </div>
+            <div class="field"></div>
+            <div class="field" style="grid-column: 1 / -1">
+              <label class="label">Purpose</label>
+              <input class="input" type="text" formControlName="purpose" maxlength="200" placeholder="Reason for loan…" />
+            </div>
+            <div class="field" style="grid-column: 1 / -1">
+              <label class="label">Remarks</label>
+              <textarea class="input" rows="2" formControlName="remarks" maxlength="500" placeholder="Admin notes…"></textarea>
+            </div>
+          </div>
+          @if (formError()) { <div class="toast toast-error">{{ formError() }}</div> }
+          <div class="row" style="justify-content:flex-end;gap:8px">
+            <button type="button" class="btn btn-ghost" (click)="cancelForm()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="saving()">
+              {{ saving() ? 'Saving…' : (editing() ? 'Update' : 'Issue Loan') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (detailFor(); as d) {
+    <div class="modal-backdrop" (click)="closeDetail()">
+      <div class="modal modal-wide" (click)="$event.stopPropagation()">
+        <div class="row" style="justify-content:space-between;align-items:flex-start">
+          <div>
+            <h3 class="card-title">{{ d.loanCode }} — {{ d.memberName }}</h3>
+            <p class="muted">{{ d.purpose || '—' }}</p>
+          </div>
+          <span class="badge" [class]="statusClass(d.status)">{{ statusLabel(d.status) }}</span>
+        </div>
+
+        <div class="grid-2" style="margin:12px 0">
+          <div class="kpi"><p class="kpi-label">Principal</p><p class="kpi-value">{{ d.principalAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+          <div class="kpi"><p class="kpi-label">Interest</p><p class="kpi-value">{{ d.interestAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }} <span class="muted" style="font-size:12px">({{ d.interestRate }}% {{ d.interestType === 'MonthlyRecurring' ? '/mo' : 'flat' }})</span></p></div>
+          <div class="kpi"><p class="kpi-label">Tenure</p><p class="kpi-value">{{ d.tenureMonths }} month(s)</p></div>
+          <div class="kpi"><p class="kpi-label">Outstanding</p><p class="kpi-value danger">{{ d.outstandingBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+          <div class="kpi"><p class="kpi-label">Paid (Principal)</p><p class="kpi-value success">{{ d.principalPaid | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+          <div class="kpi"><p class="kpi-label">Paid (Interest)</p><p class="kpi-value success">{{ d.interestPaid | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+          <div class="kpi"><p class="kpi-label">Released</p><p class="kpi-value" style="font-size:16px">{{ d.releaseDate | date:'dd MMM yyyy' }}</p></div>
+          <div class="kpi"><p class="kpi-label">Expected Return</p><p class="kpi-value" style="font-size:16px">{{ d.expectedReturnDate | date:'dd MMM yyyy' }}</p></div>
+        </div>
+
+        <h4 class="card-title">Repayments</h4>
+        @if (detailLoading()) {
+          <p class="muted">Loading…</p>
+        } @else if (repayments().length === 0) {
+          <p class="muted">No repayments yet.</p>
+        } @else {
+          <table class="table">
+            <thead><tr><th>Date</th><th>Amount</th><th>Principal</th><th>Interest</th><th>Mode</th><th>Ref</th><th>By</th><th></th></tr></thead>
+            <tbody>
+              @for (r of repayments(); track r.repaymentId) {
+                <tr>
+                  <td>{{ r.repaymentDate | date:'dd MMM yyyy' }}</td>
+                  <td><strong>{{ r.amount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong></td>
+                  <td class="success">{{ r.principalPortion | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
+                  <td class="success">{{ r.interestPortion | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
+                  <td><span class="badge badge-neutral">{{ r.paymentMode }}</span></td>
+                  <td class="muted">{{ r.referenceNo || '—' }}</td>
+                  <td class="muted">{{ r.recordedByName || '—' }}</td>
+                  <td class="text-right">
+                    <button class="btn btn-ghost btn-xs" (click)="openEditRepayment(r)" title="Edit">✏️</button>
+                    <button class="btn btn-ghost btn-xs" (click)="openRepaymentAudit(r)" title="View history">📜</button>
+                    <button class="btn btn-ghost btn-xs" (click)="deleteRepayment(r)" title="Reverse">🗑️</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+
+        <h4 class="card-title">Audit Trail</h4>
+        @if (history().length === 0) {
+          <p class="muted">No history entries.</p>
+        } @else {
+          <table class="table">
+            <thead><tr><th>When</th><th>Action</th><th>Details</th></tr></thead>
+            <tbody>
+              @for (h of history(); track h.auditLogId) {
+                <tr>
+                  <td>{{ h.createdAt | date:'dd MMM yyyy HH:mm' }}</td>
+                  <td><span class="badge badge-neutral">{{ h.action }}</span></td>
+                  <td class="muted" style="font-family:monospace;font-size:12px;white-space:pre-wrap">{{ h.details || '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+
+        <div class="row" style="justify-content:flex-end;gap:8px;margin-top:12px">
+          @if (d.status !== 'Closed') {
+            <button class="btn btn-primary" (click)="openRepayment(d); closeDetail()">💵 Record Repayment</button>
+          }
+          <button class="btn btn-ghost" (click)="closeDetail()">Close</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (repaymentFor(); as rl) {
+    <div class="modal-backdrop" (click)="cancelRepayment()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h3 class="card-title">Record Repayment — {{ rl.loanCode }}</h3>
+        <p class="muted">{{ rl.memberName }} · Outstanding: <strong class="danger">{{ rl.outstandingBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong></p>
+        <form [formGroup]="repaymentForm" (ngSubmit)="saveRepayment()" class="stack">
+          <div class="grid-2">
+            <div class="field">
+              <label class="label">Repayment Date *</label>
+              <input class="input" type="date" formControlName="repaymentDate" [max]="today" />
+            </div>
+            <div class="field">
+              <label class="label">Amount (₹) *</label>
+              <input class="input" type="number" formControlName="amount" min="0.01" step="0.01" />
+            </div>
+            <div class="field">
+              <label class="label">Payment Mode *</label>
+              <select class="input" formControlName="paymentMode">
+                <option value="Cash">Cash</option>
+                <option value="Transfer">Transfer</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="label">Reference No</label>
+              <input class="input" type="text" formControlName="referenceNo" maxlength="50" />
+            </div>
+            <div class="field" style="grid-column: 1 / -1">
+              <label class="label">Notes</label>
+              <textarea class="input" rows="2" formControlName="notes" maxlength="300"></textarea>
+            </div>
+          </div>
+          @if (repaymentError()) { <div class="toast toast-error">{{ repaymentError() }}</div> }
+          <div class="row" style="justify-content:flex-end;gap:8px">
+            <button type="button" class="btn btn-ghost" (click)="cancelRepayment()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="repaymentSaving()">
+              {{ repaymentSaving() ? 'Saving…' : 'Record Payment' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (deleting(); as dl) {
+    <div class="modal-backdrop" (click)="cancelDelete()">
+      <div class="modal" (click)="$event.stopPropagation()" style="max-width:480px">
+        <h3 class="card-title">Delete Loan?</h3>
+        <p>
+          This loan will be removed and the principal returned to available balance. Repayments will be reversed.
+          <br /><strong>{{ dl.loanCode }}</strong> — {{ dl.memberName }} — {{ dl.principalAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}
+        </p>
+        <div class="field">
+          <label class="label">Reason {{ dl.repaymentCount > 0 ? '*' : '(optional)' }}</label>
+          <input class="input" [ngModel]="deleteReason()" (ngModelChange)="deleteReason.set($event)" [ngModelOptions]="{standalone:true}" placeholder="Why delete?" />
+        </div>
+        <div class="row" style="justify-content:flex-end;gap:8px">
+          <button type="button" class="btn btn-ghost" (click)="cancelDelete()">Cancel</button>
+          <button type="button" class="btn btn-danger" (click)="performDelete()" [disabled]="dl.repaymentCount > 0 && !deleteReason()">Delete</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (editingRepayment(); as er) {
+    <div class="modal-backdrop" (click)="cancelEditRepayment()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h3 class="card-title">Edit Repayment — {{ er.loanCode }}</h3>
+        <p class="muted">Adjust principal portion, interest portion, or any metadata. Works on any loan status; the loan will auto-recompute (reopen or auto-close).</p>
+        <form [formGroup]="editRepaymentForm" (ngSubmit)="saveEditRepayment()" class="stack">
+          <div class="grid-2">
+            <div class="field">
+              <label class="label">Repayment Date *</label>
+              <input class="input" type="date" formControlName="repaymentDate" [max]="today" />
+            </div>
+            <div class="field">
+              <label class="label">Payment Mode *</label>
+              <select class="input" formControlName="paymentMode">
+                <option value="Cash">Cash</option>
+                <option value="Transfer">Transfer</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="label">Principal Portion (₹) *</label>
+              <input class="input" type="number" formControlName="principalPortion" min="0" step="0.01" />
+            </div>
+            <div class="field">
+              <label class="label">Interest Portion (₹) *</label>
+              <input class="input" type="number" formControlName="interestPortion" min="0" step="0.01" />
+            </div>
+            <div class="field" style="grid-column: 1 / -1">
+              <p class="muted">Total: <strong>{{ editRepaymentTotal() | currency:'INR':'symbol':'1.2-2':'en-IN' }}</strong></p>
+            </div>
+            <div class="field">
+              <label class="label">Reference No</label>
+              <input class="input" type="text" formControlName="referenceNo" maxlength="50" />
+            </div>
+            <div class="field">
+              <label class="label">Reason (optional)</label>
+              <input class="input" type="text" formControlName="reason" maxlength="200" placeholder="Why are you editing?" />
+            </div>
+            <div class="field" style="grid-column: 1 / -1">
+              <label class="label">Notes</label>
+              <textarea class="input" rows="2" formControlName="notes" maxlength="300"></textarea>
+            </div>
+          </div>
+          @if (editRepaymentError()) { <div class="toast toast-error">{{ editRepaymentError() }}</div> }
+          <div class="row" style="justify-content:flex-end;gap:8px">
+            <button type="button" class="btn btn-ghost" (click)="cancelEditRepayment()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="editRepaymentSaving()">
+              {{ editRepaymentSaving() ? 'Saving…' : 'Update Repayment' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (softBlock(); as sb) {
+    <div class="modal-backdrop" (click)="cancelSoftBlock()">
+      <div class="modal" (click)="$event.stopPropagation()" style="max-width:520px">
+        <h3 class="card-title">⚠ NET Balance Warning</h3>
+        <p>{{ sb.message }}</p>
+        <div class="grid-2" style="margin:12px 0">
+          <div class="kpi">
+            <p class="kpi-label">Current NET Balance</p>
+            <p class="kpi-value">{{ sb.current | currency:'INR':'symbol':'1.2-2':'en-IN' }}</p>
+          </div>
+          <div class="kpi">
+            <p class="kpi-label">Projected NET Balance</p>
+            <p class="kpi-value danger">{{ sb.projected | currency:'INR':'symbol':'1.2-2':'en-IN' }}</p>
+          </div>
+        </div>
+        <p class="muted">Proceeding will allow the balance to go negative. Confirm only if this is intentional.</p>
+        <div class="row" style="justify-content:flex-end;gap:8px">
+          <button type="button" class="btn btn-ghost" (click)="cancelSoftBlock()">Cancel</button>
+          <button type="button" class="btn btn-danger" (click)="confirmSoftBlock()">Override & {{ sb.kind === 'edit' ? 'Save' : 'Delete' }}</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (reconcilePreview(); as rec) {
+    <div class="modal-backdrop" (click)="closeReconcile()">
+      <div class="modal modal-wide" (click)="$event.stopPropagation()">
+        <h3 class="card-title">🔧 Loan Status Reconciliation</h3>
+        <p class="muted">
+          Scans every loan and compares the stored status against what the repayments imply under current accounting rules.
+          Use this after a backfill or if you suspect drift. No data is modified until you click "Apply".
+        </p>
+        <div class="grid-2" style="margin:12px 0">
+          <div class="kpi"><p class="kpi-label">Loans Scanned</p><p class="kpi-value">{{ rec.totalLoansScanned }}</p></div>
+          <div class="kpi"><p class="kpi-label">Needing Fix</p><p class="kpi-value" [class]="rec.loansNeedingFix > 0 ? 'danger' : 'success'">{{ rec.loansNeedingFix }}</p></div>
+          <div class="kpi"><p class="kpi-label">Current NET Balance</p><p class="kpi-value">{{ rec.currentAvailableBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+          <div class="kpi"><p class="kpi-label">Already Fixed</p><p class="kpi-value success">{{ rec.loansFixed }}</p></div>
+        </div>
+        @if (rec.diffs.length === 0) {
+          <p class="success"><strong>✓ All loan statuses are consistent.</strong> No fixes required.</p>
+        } @else {
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Loan</th>
+                <th>Member</th>
+                <th>Stored Status</th>
+                <th>Computed Status</th>
+                <th class="text-right">Principal Outstanding</th>
+                <th class="text-right">Interest Outstanding</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (d of rec.diffs; track d.loanId) {
+                <tr>
+                  <td><strong>{{ d.loanCode }}</strong></td>
+                  <td>{{ d.memberName }}</td>
+                  <td><span class="badge" [class]="statusClass(d.storedStatus)">{{ statusLabel(d.storedStatus) }}</span></td>
+                  <td><span class="badge" [class]="statusClass(d.computedStatus)">{{ statusLabel(d.computedStatus) }}</span></td>
+                  <td class="text-right">{{ d.principalOutstanding | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
+                  <td class="text-right">{{ d.interestOutstanding | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+        <div class="row" style="justify-content:flex-end;gap:8px;margin-top:12px">
+          <button type="button" class="btn btn-ghost" (click)="closeReconcile()">Close</button>
+          @if (rec.diffs.length > 0) {
+            <button type="button" class="btn btn-primary" [disabled]="reconciling()" (click)="applyReconcile()">
+              {{ reconciling() ? 'Applying…' : 'Apply Fixes' }}
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (auditFor(); as ar) {
+    <div class="modal-backdrop" (click)="closeRepaymentAudit()">
+      <div class="modal modal-wide" (click)="$event.stopPropagation()">
+        <h3 class="card-title">📜 Repayment History — {{ ar.loanCode }}</h3>
+        <p class="muted">
+          {{ ar.repaymentDate | date:'dd MMM yyyy' }} ·
+          <strong>{{ ar.amount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong>
+          (Principal {{ ar.principalPortion | currency:'INR':'symbol':'1.0-0':'en-IN' }} /
+           Interest {{ ar.interestPortion | currency:'INR':'symbol':'1.0-0':'en-IN' }})
+        </p>
+
+        @if (auditLoading()) {
+          <p class="muted">Loading…</p>
+        } @else if (auditError()) {
+          <div class="toast toast-error">{{ auditError() }}</div>
+        } @else if (auditEntries().length === 0) {
+          <p class="muted">No audit entries recorded.</p>
+        } @else {
+          <ol class="audit-timeline">
+            @for (e of auditEntries(); track e.auditLogId) {
+              <li class="audit-item">
+                <div class="audit-header">
+                  <span class="badge" [class]="auditActionClass(e.action)">{{ auditActionLabel(e.action) }}</span>
+                  <span class="muted">{{ e.createdAt | date:'dd MMM yyyy HH:mm' }}</span>
+                  <span class="muted">· by {{ e.userEmail || (e.userId ? ('User #' + e.userId) : '—') }}</span>
+                  @if (e.forced) { <span class="badge badge-warning">Forced</span> }
+                  @if (e.prevLoanStatus && e.newLoanStatus && e.prevLoanStatus !== e.newLoanStatus) {
+                    <span class="muted">· status {{ statusLabel(e.prevLoanStatus) }} → {{ statusLabel(e.newLoanStatus) }}</span>
+                  }
+                </div>
+                @if (e.reason) { <p class="audit-reason"><em>"{{ e.reason }}"</em></p> }
+                @if (e.projectedAvailableBalance != null) {
+                  <p class="muted">Projected NET balance after: {{ e.projectedAvailableBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p>
+                }
+                @if (e.before || e.after) {
+                  <div class="audit-diff">
+                    @if (e.before) {
+                      <div>
+                        <div class="audit-diff-label">Before</div>
+                        <pre class="audit-diff-pre">{{ formatAuditPayload(e.before) }}</pre>
+                      </div>
+                    }
+                    @if (e.after) {
+                      <div>
+                        <div class="audit-diff-label">After</div>
+                        <pre class="audit-diff-pre">{{ formatAuditPayload(e.after) }}</pre>
+                      </div>
+                    }
+                  </div>
+                }
+              </li>
+            }
+          </ol>
+        }
+
+        <div class="row" style="justify-content:flex-end;gap:8px;margin-top:12px">
+          <button type="button" class="btn btn-ghost" (click)="closeRepaymentAudit()">Close</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

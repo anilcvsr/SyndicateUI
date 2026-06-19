@@ -98,6 +98,11 @@ export interface AppSettingsDto {
   trackingStart: string;
   trackingEnd: string;
   currency: string;
+  allowMemberPaymentSubmission: boolean;
+}
+
+export interface UpdatePaymentSubmissionPayload {
+  allowMemberPaymentSubmission: boolean;
 }
 
 export interface UpdateAppSettingsPayload {
@@ -152,4 +157,30 @@ export interface MonthlyLogDto {
   months: string[];
   rows: MonthlyLogRowDto[];
   columnTotals: MonthlyColumnTotalDto[];
+}
+
+export interface YearlyContributionDto {
+  id: number;
+  year: number;
+  startDate: string;
+  endDate: string;
+  monthlyAmount: number;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateYearlyContributionPayload {
+  year: number;
+  startDate: string;
+  endDate: string;
+  monthlyAmount: number;
+  notes: string | null;
+}
+
+export interface UpdateYearlyContributionPayload {
+  startDate: string;
+  endDate: string;
+  monthlyAmount: number;
+  notes: string | null;
 }

@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MemberApi } from '../../../core/services/member.api';
 import { MemberHomeSummaryDto, MemberPaymentHistoryItemDto } from '../../../core/models/member.models';
-import { ExpenseSummaryDto } from '../../../core/models/expense.models';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -17,26 +16,23 @@ export class MemberHomeComponent {
   private api = inject(MemberApi);
   summary = signal<MemberHomeSummaryDto | null>(null);
   history = signal<MemberPaymentHistoryItemDto[]>([]);
-  expenseSummary = signal<ExpenseSummaryDto | null>(null);
   loading = signal(true);
   error = signal<string | null>(null);
 
   netBalanceClass = computed(() => {
-    const e = this.expenseSummary();
-    if (!e) return '';
-    return e.netBalance < 0 ? 'danger' : 'success';
+    const s = this.summary();
+    if (!s) return '';
+    return s.groupNetBalance < 0 ? 'danger' : 'success';
   });
 
   constructor() {
     forkJoin({
       s: this.api.homeSummary(),
-      h: this.api.history(),
-      e: this.api.expenseSummary()
+      h: this.api.history()
     }).subscribe({
-      next: ({ s, h, e }) => {
+      next: ({ s, h }) => {
         this.summary.set(s);
         this.history.set(h);
-        this.expenseSummary.set(e);
         this.loading.set(false);
       },
       error: (err) => { this.error.set(err?.error?.message ?? 'Failed to load.'); this.loading.set(false); }

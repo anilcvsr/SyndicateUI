@@ -22,6 +22,7 @@ export class MemberProofsComponent {
   success = signal<string | null>(null);
   file = signal<File | null>(null);
   fileError = signal<string | null>(null);
+  canSubmit = signal(false);
 
   paymentModes = ['Cash', 'UPI', 'Bank Transfer', 'Cheque'];
 
@@ -36,6 +37,10 @@ export class MemberProofsComponent {
 
   load() {
     this.loading.set(true);
+    this.api.homeSummary().subscribe({
+      next: (s) => this.canSubmit.set(s.allowMemberPaymentSubmission),
+      error: () => this.canSubmit.set(false)
+    });
     this.api.listProofs().subscribe({
       next: (r) => { this.rows.set(r); this.loading.set(false); },
       error: (e) => { this.error.set(e?.error?.message ?? 'Failed to load.'); this.loading.set(false); }

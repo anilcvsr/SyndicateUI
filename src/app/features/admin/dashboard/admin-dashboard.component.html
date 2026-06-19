@@ -41,6 +41,20 @@
       }
     }
 
+    @if (loanSummary(); as l) {
+      <section class="kpi-grid">
+        <div class="kpi"><p class="kpi-label">Loans Issued</p><p class="kpi-value">{{ l.totalLoansIssuedAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p><p class="muted">{{ l.totalLoansIssuedCount }} loan(s)</p></div>
+        <div class="kpi"><p class="kpi-label">Principal Outstanding</p><p class="kpi-value" style="color:#ef4444">{{ l.totalOutstanding | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+        <div class="kpi"><p class="kpi-label">Principal Repaid</p><p class="kpi-value success">{{ l.totalRepaidPrincipal | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+        <div class="kpi"><p class="kpi-label">Interest Earned (Paid)</p><p class="kpi-value success">{{ l.totalInterestEarned | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p><p class="muted">Realised in NET balance</p></div>
+        <div class="kpi"><p class="kpi-label">Overdue Loans</p><p class="kpi-value" [style.color]="l.overdueCount > 0 ? '#ef4444' : '#16a34a'">{{ l.overdueCount }}</p><p class="muted">{{ l.overdueAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+        <div class="kpi"><p class="kpi-label">&nbsp;</p><p class="kpi-value" style="font-size:14px"><a routerLink="/admin/loans" class="btn btn-ghost btn-sm">View Loans →</a></p></div>
+      </section>
+      @if (l.overdueCount > 0) {
+        <div class="toast toast-warning">⚠ {{ l.overdueCount }} loan(s) overdue — {{ l.overdueAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }} outstanding.</div>
+      }
+    }
+
     <section class="card">
       <h3 class="card-title">Monthly Collection Trend</h3>
       @if (monthly().length === 0) {

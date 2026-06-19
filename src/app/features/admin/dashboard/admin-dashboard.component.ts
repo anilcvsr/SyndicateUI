@@ -9,6 +9,7 @@ import {
   PendingDueDto
 } from '../../../core/models/admin.models';
 import { ExpenseSummaryDto } from '../../../core/models/expense.models';
+import { LoanSummaryDto } from '../../../core/models/loan.models';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -25,6 +26,7 @@ export class AdminDashboardComponent {
   monthly = signal<MonthlyCollectionDto[]>([]);
   dues = signal<PendingDueDto[]>([]);
   expenseSummary = signal<ExpenseSummaryDto | null>(null);
+  loanSummary = signal<LoanSummaryDto | null>(null);
   loading = signal(true);
   error = signal<string | null>(null);
   priorityFilter = signal<'ALL' | 'HIGH' | 'MED' | 'LOW'>('ALL');
@@ -54,13 +56,15 @@ export class AdminDashboardComponent {
       s: this.api.summary(),
       m: this.api.monthlyCollection(),
       d: this.api.pendingDues(),
-      e: this.api.expenseSummary()
+      e: this.api.expenseSummary(),
+      l: this.api.loanSummary()
     }).subscribe({
-      next: ({ s, m, d, e }) => {
+      next: ({ s, m, d, e, l }) => {
         this.summary.set(s);
         this.monthly.set(m);
         this.dues.set(d);
         this.expenseSummary.set(e);
+        this.loanSummary.set(l);
         this.loading.set(false);
       },
       error: (err) => {

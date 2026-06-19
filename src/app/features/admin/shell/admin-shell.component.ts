@@ -22,6 +22,8 @@ export class AdminShellComponent {
     { path: '/admin/expenses', label: 'Expenses', icon: '💸' },
     { path: '/admin/expense-summary', label: 'Expense Summary', icon: '📈' },
     { path: '/admin/expense-categories', label: 'Expense Categories', icon: '🏷️' },
+    { path: '/admin/loans', label: 'Loans', icon: '🏦' },
+    { path: '/admin/loan-summary', label: 'Loan Summary', icon: '📉' },
     { path: '/admin/settings', label: 'Settings', icon: '⚙️' }
   ];
 

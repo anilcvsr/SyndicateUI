@@ -8,7 +8,7 @@
 
   <div class="card">
     @if (loading()) {
-      <p class="muted">Loading…</p>
+      <p class="muted">Loading...</p>
     } @else {
       <form [formGroup]="form" (ngSubmit)="save()" class="stack">
         <div class="grid-2">
@@ -20,11 +20,6 @@
             <label class="label">Currency</label>
             <input class="input" formControlName="currency" maxlength="10" />
           </div>
-          <div class="field">
-            <label class="label">Fixed Monthly Amount</label>
-            <input class="input" type="number" formControlName="fixedMonthlyAmount" min="1" />
-          </div>
-          <div class="field"></div>
           <div class="field">
             <label class="label">Tracking Start</label>
             <input class="input" type="date" formControlName="trackingStart" />
@@ -44,4 +39,173 @@
       </form>
     }
   </div>
+
+  <section class="card">
+    <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <div>
+        <h3 class="card-title" style="margin:0">Member Payment Submission</h3>
+        <p class="muted" style="margin:4px 0 0">When enabled, members can submit payment proofs from their app. When disabled, the submission option is hidden for all members.</p>
+      </div>
+      <label class="row" style="align-items:center;gap:8px;cursor:pointer">
+        <input
+          type="checkbox"
+          [checked]="allowMemberPaymentSubmission()"
+          [disabled]="loading() || submissionSaving()"
+          (change)="togglePaymentSubmission($any($event.target).checked)" />
+        <span>{{ allowMemberPaymentSubmission() ? 'Enabled' : 'Disabled' }}</span>
+      </label>
+    </div>
+    @if (submissionSuccess()) { <div class="toast toast-success" style="margin-top:12px">{{ submissionSuccess() }}</div> }
+    @if (submissionError()) { <div class="toast toast-error" style="margin-top:12px">{{ submissionError() }}</div> }
+  </section>
+
+  <section class="card">
+    <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <div>
+        <h3 class="card-title" style="margin:0">Yearly Contribution Amounts</h3>
+        <p class="muted" style="margin:4px 0 0">Monthly contribution amount per period. Periods cannot overlap. Used by all dashboards, monthly logs, payments, receipts, and member views.</p>
+      </div>
+      <button type="button" class="btn btn-primary" (click)="openAdd()" [disabled]="yearlySaving()">+ Add Period</button>
+    </div>
+
+    @if (!hasActivePeriod() && !yearlyLoading()) {
+      <div class="toast toast-warning" style="margin-top:12px">
+        No contribution amount is configured for today's date. Calculations will fall back to the most recent prior period.
+      </div>
+    }
+    @if (yearlySuccess()) { <div class="toast toast-success" style="margin-top:12px">{{ yearlySuccess() }}</div> }
+    @if (yearlyError()) { <div class="toast toast-error" style="margin-top:12px">{{ yearlyError() }}</div> }
+
+    @if (yearlyLoading()) {
+      <p class="muted" style="margin-top:12px">Loading...</p>
+    } @else if (yearly().length === 0) {
+      <p class="muted" style="margin-top:12px">No periods configured yet. Click "+ Add Period" to add one.</p>
+    } @else {
+      <table class="table" style="margin-top:12px">
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>Period</th>
+            <th>Monthly Amount</th>
+            <th>Notes</th>
+            <th>Last Updated</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (y of yearly(); track y.id) {
+            <tr [class.row-highlight]="isActive(y)">
+              <td><strong>{{ y.year }}</strong></td>
+              <td>
+                {{ formatRange(y) }}
+                @if (isActive(y)) { <span class="badge badge-success" style="margin-left:6px">Active</span> }
+              </td>
+              <td>{{ y.monthlyAmount | number:'1.2-2' }}</td>
+              <td class="muted">{{ y.notes || '-' }}</td>
+              <td class="muted">{{ y.updatedAt | date:'dd MMM yyyy, HH:mm' }}</td>
+              <td class="text-right">
+                <button class="btn btn-ghost btn-sm" (click)="openEdit(y)" [disabled]="yearlySaving()">Edit</button>
+                <button class="btn btn-ghost btn-sm" (click)="askDelete(y)" [disabled]="yearlySaving()">Delete</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </section>
+
+  @if (showAdd()) {
+    <div class="modal-backdrop" (click)="cancelAdd()">
+      <div class="modal" (click)="$event.stopPropagation()" style="max-width:560px">
+        <h3 class="card-title">Add Yearly Contribution Period</h3>
+        <form [formGroup]="addForm" (ngSubmit)="addYearly()" class="stack">
+          <div class="grid-2">
+            <div class="field">
+              <label class="label">Year *</label>
+              <input class="input" type="number" formControlName="year" min="1900" max="2200" (change)="onAddYearChange()" />
+              <small class="muted">Used for grouping/display only.</small>
+            </div>
+            <div class="field">
+              <label class="label">Monthly Amount *</label>
+              <input class="input" type="number" formControlName="monthlyAmount" min="1" step="0.01" />
+            </div>
+            <div class="field">
+              <label class="label">Start Date *</label>
+              <input class="input" type="date" formControlName="startDate" />
+            </div>
+            <div class="field">
+              <label class="label">End Date *</label>
+              <input class="input" type="date" formControlName="endDate" />
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">Notes</label>
+            <input class="input" formControlName="notes" maxlength="500" placeholder="Optional" />
+          </div>
+          @if (addForm.errors?.['dateRange']) {
+            <div class="toast toast-error">Start Date must be on or before End Date.</div>
+          }
+          @if (yearlyError()) { <div class="toast toast-error">{{ yearlyError() }}</div> }
+          <div class="row" style="justify-content:flex-end;gap:8px">
+            <button type="button" class="btn btn-ghost" (click)="cancelAdd()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="yearlySaving()">{{ yearlySaving() ? 'Saving...' : 'Add' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (editing(); as e) {
+    <div class="modal-backdrop" (click)="cancelEdit()">
+      <div class="modal" (click)="$event.stopPropagation()" style="max-width:560px">
+        <h3 class="card-title">Edit Period - Year {{ e.year }}</h3>
+        <form [formGroup]="editForm" (ngSubmit)="saveEdit()" class="stack">
+          <div class="grid-2">
+            <div class="field">
+              <label class="label">Year</label>
+              <input class="input" type="number" [value]="e.year" disabled />
+              <small class="muted">Year cannot be changed.</small>
+            </div>
+            <div class="field">
+              <label class="label">Monthly Amount *</label>
+              <input class="input" type="number" formControlName="monthlyAmount" min="1" step="0.01" />
+            </div>
+            <div class="field">
+              <label class="label">Start Date *</label>
+              <input class="input" type="date" formControlName="startDate" />
+            </div>
+            <div class="field">
+              <label class="label">End Date *</label>
+              <input class="input" type="date" formControlName="endDate" />
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">Notes</label>
+            <input class="input" formControlName="notes" maxlength="500" placeholder="Optional" />
+          </div>
+          @if (editForm.errors?.['dateRange']) {
+            <div class="toast toast-error">Start Date must be on or before End Date.</div>
+          }
+          @if (yearlyError()) { <div class="toast toast-error">{{ yearlyError() }}</div> }
+          <div class="row" style="justify-content:flex-end;gap:8px">
+            <button type="button" class="btn btn-ghost" (click)="cancelEdit()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="yearlySaving()">{{ yearlySaving() ? 'Saving...' : 'Save' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (deleting(); as d) {
+    <div class="modal-backdrop" (click)="cancelDelete()">
+      <div class="modal" (click)="$event.stopPropagation()" style="max-width:480px">
+        <h3 class="card-title">Delete Period - Year {{ d.year }}?</h3>
+        <p>This will remove the contribution amount for the period <strong>{{ formatRange(d) }}</strong>. If any payment records reference dates within this period, deletion will be blocked.</p>
+        <div class="row" style="justify-content:flex-end;gap:8px">
+          <button type="button" class="btn btn-ghost" (click)="cancelDelete()">Cancel</button>
+          <button type="button" class="btn btn-primary" (click)="confirmDelete()" [disabled]="yearlySaving()">{{ yearlySaving() ? 'Deleting...' : 'Delete' }}</button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

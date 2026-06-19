@@ -24,13 +24,15 @@
       <div class="kpi"><p class="kpi-label">Last Payment</p><p class="kpi-value" style="font-size:18px;">{{ summary()!.lastPaymentDate ? (summary()!.lastPaymentDate | date:'dd MMM yyyy') : '—' }}</p></div>
     </section>
 
-    @if (expenseSummary(); as e) {
+    @if (summary(); as s) {
       <section class="card">
         <h3 class="card-title">Group Finance Snapshot</h3>
         <div class="kpi-grid">
-          <div class="kpi"><p class="kpi-label">Group Collected</p><p class="kpi-value">{{ e.totalCollected | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
-          <div class="kpi"><p class="kpi-label">Group Expenses</p><p class="kpi-value" style="color:#ef4444">{{ e.totalExpenses | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
-          <div class="kpi"><p class="kpi-label">Net Balance</p><p class="kpi-value" [class]="netBalanceClass()">{{ e.netBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+          <div class="kpi"><p class="kpi-label">Group Collected</p><p class="kpi-value">{{ s.groupTotalCollected | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+          <div class="kpi"><p class="kpi-label">Group Expenses</p><p class="kpi-value" style="color:#ef4444">{{ s.groupTotalExpenses | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+          <div class="kpi"><p class="kpi-label">Interest Paid</p><p class="kpi-value" style="color:#10b981">{{ s.groupInterestPaid | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+          <div class="kpi"><p class="kpi-label">Outstanding Loans</p><p class="kpi-value" [class.danger]="s.groupOutstandingLoans > 0">{{ s.groupOutstandingLoans | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+          <div class="kpi"><p class="kpi-label">Net Balance</p><p class="kpi-value" [class]="netBalanceClass()">{{ s.groupNetBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
         </div>
         <a routerLink="/member/expenses" class="btn btn-ghost btn-sm" style="margin-top:8px">View Group Expenses →</a>
       </section>
@@ -51,7 +53,9 @@
       <div class="card">
         <h3 class="card-title">Actions</h3>
         <div class="stack">
-          <a class="btn btn-primary" routerLink="/member/proofs">📎 Upload Payment Proof</a>
+          @if (summary()?.allowMemberPaymentSubmission) {
+            <a class="btn btn-primary" routerLink="/member/proofs">📎 Upload Payment Proof</a>
+          }
           <a class="btn btn-secondary" routerLink="/member/history">📜 View Full History</a>
         </div>
       </div>

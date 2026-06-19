@@ -1,0 +1,109 @@
+<div class="stack">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Loan Summary</h1>
+      <p class="muted">Overview of loans issued, outstanding, interest earned, and overdue cases.</p>
+    </div>
+    <a class="btn btn-ghost" routerLink="/admin/loans">← Back to Loans</a>
+  </header>
+
+  <section class="card">
+    <h3 class="card-title">Date Range</h3>
+    <form class="row" (submit)="load(); $event.preventDefault()" style="gap:12px;align-items:flex-end">
+      <div class="field">
+        <label class="label">From</label>
+        <input class="input" type="date" [ngModel]="from()" (ngModelChange)="from.set($event)" name="from" />
+      </div>
+      <div class="field">
+        <label class="label">To</label>
+        <input class="input" type="date" [ngModel]="to()" (ngModelChange)="to.set($event)" name="to" />
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+    </form>
+  </section>
+
+  @if (loading()) {
+    <p class="muted">Loading summary…</p>
+  } @else if (error()) {
+    <div class="toast toast-error">{{ error() }}</div>
+  } @else if (summary(); as s) {
+    <section class="kpi-grid">
+      <div class="kpi"><p class="kpi-label">Total Loans Issued</p><p class="kpi-value">{{ s.totalLoansIssuedAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p><p class="muted">{{ s.totalLoansIssuedCount }} loan(s)</p></div>
+      <div class="kpi"><p class="kpi-label">Outstanding</p><p class="kpi-value danger">{{ s.totalOutstanding | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+      <div class="kpi"><p class="kpi-label">Repaid (Principal)</p><p class="kpi-value success">{{ s.totalRepaidPrincipal | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+      <div class="kpi"><p class="kpi-label">Interest Earned</p><p class="kpi-value success">{{ s.totalInterestEarned | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+      <div class="kpi"><p class="kpi-label">Active</p><p class="kpi-value">{{ s.activeCount }}</p></div>
+      <div class="kpi"><p class="kpi-label">Overdue</p><p class="kpi-value danger">{{ s.overdueCount }}</p><p class="muted">{{ s.overdueAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+      <div class="kpi"><p class="kpi-label">Total Collected</p><p class="kpi-value">{{ s.totalCollected | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+      <div class="kpi"><p class="kpi-label">Available After Loans</p><p class="kpi-value" [class]="s.availableFundAfterLoans < 0 ? 'danger' : 'success'">{{ s.availableFundAfterLoans | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+    </section>
+
+    <section class="card">
+      <h3 class="card-title">Status Breakdown</h3>
+      @if (s.statusBreakdown.length === 0) {
+        <p class="muted">No data.</p>
+      } @else {
+        <table class="table">
+          <thead><tr><th>Status</th><th class="text-right">Count</th><th class="text-right">Total Amount</th></tr></thead>
+          <tbody>
+            @for (b of s.statusBreakdown; track b.status) {
+              <tr>
+                <td><span class="badge" [class]="statusClass(b.status)">{{ statusLabel(b.status) }}</span></td>
+                <td class="text-right">{{ b.count }}</td>
+                <td class="text-right"><strong>{{ b.totalAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+
+    <section class="card">
+      <h3 class="card-title">Monthly Disbursement</h3>
+      @if (s.monthlyDisbursement.length === 0) {
+        <p class="muted">No disbursements in range.</p>
+      } @else {
+        <div class="row-wrap" style="align-items:flex-end;gap:12px;height:160px;padding:8px 0">
+          @for (m of s.monthlyDisbursement; track m.month) {
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:44px">
+              <span class="muted" style="font-size:11px">{{ m.totalAmount | currency:'INR':'symbol-narrow':'1.0-0':'en-IN' }}</span>
+              <div [style.height.px]="(m.totalAmount / maxMonthly()) * 110" style="background:#6366f1;width:32px;border-radius:4px 4px 0 0;min-height:2px"></div>
+              <span class="muted" style="font-size:11px">{{ monthLabel(m.month) }}</span>
+              <span class="muted" style="font-size:10px">({{ m.count }})</span>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="card">
+      <h3 class="card-title">Member-wise Summary</h3>
+      @if (s.memberSummary.length === 0) {
+        <p class="muted">No member data.</p>
+      } @else {
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Member</th>
+              <th class="text-right">Active Loans</th>
+              <th class="text-right">Total Principal</th>
+              <th class="text-right">Repaid</th>
+              <th class="text-right">Outstanding</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (m of s.memberSummary; track m.memberId) {
+              <tr>
+                <td>{{ m.memberName }} <span class="muted">({{ m.memberCode }})</span></td>
+                <td class="text-right">{{ m.activeLoans }}</td>
+                <td class="text-right">{{ m.totalPrincipal | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
+                <td class="text-right success">{{ m.repaid | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
+                <td class="text-right" [class.danger]="m.outstanding > 0"><strong>{{ m.outstanding | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+  }
+</div>

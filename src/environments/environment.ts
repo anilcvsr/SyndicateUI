@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiBaseUrl: 'https://app-api-gdhadudkd6frdgdt.centralindia-01.azurewebsites.net'
+  apiBaseUrl: 'https://syndicateapi.purplebeach-f2e75cb3.centralindia.azurecontainerapps.io'
 };

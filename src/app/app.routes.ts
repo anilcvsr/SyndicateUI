@@ -60,6 +60,16 @@ export const routes: Routes = [
           import('./features/admin/expenses/admin-expense-categories.component').then((m) => m.AdminExpenseCategoriesComponent)
       },
       {
+        path: 'loans',
+        loadComponent: () =>
+          import('./features/admin/loans/admin-loans.component').then((m) => m.AdminLoansComponent)
+      },
+      {
+        path: 'loan-summary',
+        loadComponent: () =>
+          import('./features/admin/loans/admin-loan-summary.component').then((m) => m.AdminLoanSummaryComponent)
+      },
+      {
         path: 'settings',
         loadComponent: () =>
           import('./features/admin/settings/admin-settings.component').then((m) => m.AdminSettingsComponent)
@@ -92,6 +102,11 @@ export const routes: Routes = [
         path: 'expenses',
         loadComponent: () =>
           import('./features/member/expenses/member-expenses.component').then((m) => m.MemberExpensesComponent)
+      },
+      {
+        path: 'loans',
+        loadComponent: () =>
+          import('./features/member/loans/member-loans.component').then((m) => m.MemberLoansComponent)
       }
     ]
   },

@@ -1,17 +1,13 @@
-.expense-amount {
-  color: #ef4444;
-}
+.badge-info { background: #dbeafe; color: #1e40af; }
+.badge-success { background: #d1fae5; color: #065f46; }
+.badge-warning { background: #fef3c7; color: #92400e; }
+.badge-danger { background: #fee2e2; color: #991b1b; }
+.badge-neutral { background: #f3f4f6; color: #374151; }
 
 .kpi-value.success { color: #10b981; }
 .kpi-value.danger { color: #ef4444; }
-
-.cat-chip {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-}
+.success { color: #10b981; }
+.danger { color: #ef4444; }
 
 .chip {
   display: inline-block;
@@ -30,6 +26,37 @@
     border-color: #6366f1;
     color: #4338ca;
     font-weight: 600;
+  }
+}
+
+.row-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.loan-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 12px;
+}
+
+.loan-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px;
+  background: #fff;
+  cursor: pointer;
+  transition: all .15s ease;
+
+  &:hover {
+    border-color: #6366f1;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+  }
+
+  &.loan-overdue {
+    border-color: #fca5a5;
+    background: #fef2f2;
   }
 }
 
@@ -52,16 +79,8 @@
   box-shadow: 0 20px 50px rgba(0,0,0,0.25);
 }
 
-.btn-danger {
-  background: #ef4444;
-  color: #fff;
-  &:hover:not(:disabled) { background: #dc2626; }
-}
-
-.btn-xs {
-  padding: 4px 8px;
-  font-size: 14px;
-  margin-left: 2px;
+.modal-wide {
+  max-width: 900px;
 }
 
 .toast-warning {
@@ -71,36 +90,3 @@
   border-radius: 8px;
   border-left: 4px solid #f59e0b;
 }
-
-.row-wrap {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.pct-bar {
-  width: 80px;
-  height: 6px;
-  background: #f3f4f6;
-  border-radius: 4px;
-  overflow: hidden;
-  display: inline-block;
-  vertical-align: middle;
-  margin-right: 6px;
-}
-
-.pct-fill {
-  height: 100%;
-  border-radius: 4px;
-  transition: width .3s ease;
-}
-
-.cve-pair {
-  display: flex;
-  gap: 3px;
-  align-items: flex-end;
-  height: 120px;
-}
-
-.chart-pct.success { color: #10b981; font-weight: 600; }
-.chart-pct.danger { color: #ef4444; font-weight: 600; }
