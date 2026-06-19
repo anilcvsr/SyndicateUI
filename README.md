@@ -1,1 +1,2 @@
 # SyndicateUI
+# Example
