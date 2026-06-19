@@ -1,52 +1,51 @@
 <div class="stack">
-  <header class="page-header">
-    <div>
-      <h1 class="page-title">Pending Dues</h1>
-      <p class="muted">Outstanding contributions across all active members.</p>
-    </div>
-    <div class="row-wrap">
-      <select class="select" style="width:auto" [value]="filter()" (change)="filter.set($any($event.target).value)">
-        <option value="ALL">All priorities</option>
-        <option value="HIGH">🔴 High</option>
-        <option value="MED">🟡 Medium</option>
-        <option value="LOW">🟢 Low</option>
-      </select>
-      <select class="select" style="width:auto" [value]="sort()" (change)="sort.set($any($event.target).value)">
-        <option value="due">Sort: Amount Due</option>
-        <option value="months">Sort: Months Pending</option>
-      </select>
-    </div>
-  </header>
+    <header class="page-header">
+        <div>
+            <h1 class="page-title">Pending Dues</h1>
+            <p class="muted">Outstanding contributions across all active members.</p>
+        </div>
+        <div class="row-wrap">
+            <select class="select" style="width:auto" [value]="filter()" (change)="filter.set($any($event.target).value)">
+                <option value="ALL">All priorities</option>
+                <option value="HIGH">🔴 High</option>
+                <option value="MED">🟡 Medium</option>
+                <option value="LOW">🟢 Low</option>
+            </select>
+            <select class="select" style="width:auto" [value]="sort()" (change)="sort.set($any($event.target).value)">
+                <option value="due">Sort: Amount Due</option>
+                <option value="months">Sort: Months Pending</option>
+            </select>
+        </div>
+    </header>
 
-  <div class="card">
-    @if (loading()) {
-      <p class="muted">Loading…</p>
-    } @else if (error()) {
-      <div class="toast toast-error">{{ error() }}</div>
-    } @else if (visible().length === 0) {
-      <p class="muted">🎉 No pending dues for the selected filter.</p>
-    } @else {
-      <div class="row" style="justify-content:space-between;margin-bottom:10px">
-        <span class="muted">{{ visible().length }} member(s) with pending dues</span>
-        <strong>Total: {{ totalDue() | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong>
-      </div>
-      <table class="table">
-        <thead>
-          <tr><th>Priority</th><th>Member</th><th>Months Pending</th><th class="text-right">Amount Due</th><th>Last Paid</th><th class="text-right">Action</th></tr>
-        </thead>
-        <tbody>
-          @for (d of visible(); track d.memberId) {
-            <tr>
-              <td><span class="badge" [class]="priorityBadge(d.priority)">{{ d.priority }}</span></td>
-              <td><strong>{{ d.memberName }}</strong></td>
-              <td>{{ d.monthsPending }}</td>
-              <td class="text-right">{{ d.totalDue | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
-              <td>{{ d.lastPaymentDate ? (d.lastPaymentDate | date:'dd MMM yyyy') : '—' }}</td>
-              <td class="text-right"><a class="btn btn-sm btn-ghost" target="_blank" rel="noopener" [href]="reminderLink(d)">Send Reminder</a></td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    }
-  </div>
+    <div class="card">
+        @if (loading()) {
+        <p class="muted">Loading…</p>
+        } @else if (error()) {
+        <div class="toast toast-error">{{ error() }}</div>
+        } @else if (visible().length === 0) {
+        <p class="muted">🎉 No pending dues for the selected filter.</p>
+        } @else {
+        <div class="row" style="justify-content:space-between;margin-bottom:10px">
+            <span class="muted">{{ visible().length }} member(s) with pending dues</span>
+            <strong>Total: {{ totalDue() | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong>
+        </div>
+        <table class="table">
+            <thead>
+                <tr><th>Member</th><th>Months Pending</th><th class="text-right">Amount Due</th><th>Last Paid</th><th class="text-right">Action</th></tr>
+            </thead>
+            <tbody>
+                @for (d of visible(); track d.memberId) {
+                <tr>
+                    <td><strong>{{ d.memberName }}</strong></td>
+                    <td>{{ d.monthsPending }}</td>
+                    <td class="text-right">{{ d.totalDue | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
+                    <td>{{ d.lastPaymentDate ? (d.lastPaymentDate | date:'dd MMM yyyy') : '—' }}</td>
+                    <td class="text-right"><a class="btn btn-sm btn-ghost" target="_blank" rel="noopener" [href]="reminderLink(d)">Send Reminder</a></td>
+                </tr>
+                }
+            </tbody>
+        </table>
+        }
+    </div>
 </div>

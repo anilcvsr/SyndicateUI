@@ -1,262 +1,260 @@
 <div class="stack">
-  <header class="page-header">
-    <div>
-      <h1 class="page-title">My Loans</h1>
-      <p class="muted">View your loans, repayments, and outstanding balance.</p>
-    </div>
-  </header>
+    <header class="page-header">
+        <div>
+            <h1 class="page-title">My Loans</h1>
+            <p class="muted">View your loans, repayments, and outstanding balance.</p>
+        </div>
+    </header>
 
-  @if (snapshot(); as sn) {
+    @if (snapshot(); as sn) {
     <section class="kpi-grid">
-      <div class="kpi"><p class="kpi-label">Active Loans</p><p class="kpi-value">{{ sn.activeLoanCount }}</p></div>
-      <div class="kpi"><p class="kpi-label">Total Borrowed</p><p class="kpi-value">{{ sn.totalPrincipalBorrowed | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
-      <div class="kpi"><p class="kpi-label">Repaid</p><p class="kpi-value success">{{ sn.totalRepaid | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
-      <div class="kpi"><p class="kpi-label">Outstanding</p><p class="kpi-value danger">{{ sn.totalOutstanding | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
-      @if (sn.nextDueDate) {
+        <div class="kpi"><p class="kpi-label">Active Loans</p><p class="kpi-value">{{ sn.activeLoanCount }}</p></div>
+        <div class="kpi"><p class="kpi-label">Outstanding</p><p class="kpi-value danger">{{ sn.totalOutstanding | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+        @if (sn.nextDueDate) {
         <div class="kpi"><p class="kpi-label">Next Due</p><p class="kpi-value" style="font-size:18px">{{ sn.nextDueDate | date:'dd MMM yyyy' }}</p>@if (sn.nextDueInDays !== null) {<p class="muted">{{ sn.nextDueInDays >= 0 ? 'in ' + sn.nextDueInDays + ' day(s)' : (-sn.nextDueInDays) + ' day(s) late' }}</p>}</div>
-      }
-      @if (sn.overdueCount > 0) {
+        }
+        @if (sn.overdueCount > 0) {
         <div class="kpi"><p class="kpi-label">Overdue</p><p class="kpi-value danger">{{ sn.overdueCount }}</p></div>
-      }
+        }
     </section>
     @if (sn.overdueCount > 0) {
-      <div class="toast toast-warning">⚠ You have {{ sn.overdueCount }} overdue loan(s). Please arrange repayment soon.</div>
+    <div class="toast toast-warning">⚠ You have {{ sn.overdueCount }} overdue loan(s). Please arrange repayment soon.</div>
     }
-  }
+    }
 
-  <section class="card">
-    <h3 class="card-title">Filters</h3>
-    <form [formGroup]="filter" (ngSubmit)="applyFilters()" class="stack">
-      <div class="grid-2">
-        <div class="field">
-          <label class="label">From</label>
-          <input class="input" type="date" formControlName="from" />
-        </div>
-        <div class="field">
-          <label class="label">To</label>
-          <input class="input" type="date" formControlName="to" />
-        </div>
-      </div>
-      <div class="field">
-        <label class="label">Status</label>
-        <div class="row-wrap">
-          @for (s of statusOptions; track s) {
-            <button type="button" class="chip"
-                    [class.chip-active]="isStatusFilterSelected(s)"
-                    (click)="toggleStatusFilter(s)">
-              {{ statusLabel(s) }}
-            </button>
-          }
-        </div>
-      </div>
-      <div class="row" style="justify-content:flex-end;gap:8px">
-        <button type="button" class="btn btn-ghost btn-sm" (click)="resetFilters()">Reset</button>
-        <button type="submit" class="btn btn-primary btn-sm">Apply</button>
-      </div>
-    </form>
-  </section>
-
-  <section class="card">
-    @if (loading()) {
-      <p class="muted">Loading your loans…</p>
-    } @else if (error()) {
-      <div class="toast toast-error">{{ error() }}</div>
-    } @else if (result(); as r) {
-      @if (r.items.length === 0) {
-        <p class="muted">You have no loans on record.</p>
-      } @else {
-        <div class="loan-cards">
-          @for (l of r.items; track l.loanId) {
-            <div class="loan-card" [class.loan-overdue]="l.status === 'Overdue'" (click)="openDetail(l)">
-              <div class="row" style="justify-content:space-between">
-                <div>
-                  <strong>{{ l.loanCode }}</strong>
-                  <span class="muted" style="margin-left:8px;font-size:12px">{{ l.purpose || 'No purpose recorded' }}</span>
+    <section class="card">
+        <h3 class="card-title">Filters</h3>
+        <form [formGroup]="filter" (ngSubmit)="applyFilters()" class="stack">
+            <div class="grid-2">
+                <div class="field">
+                    <label class="label">From</label>
+                    <input class="input" type="date" formControlName="from" />
                 </div>
-                <span class="badge" [class]="statusClass(l.status)">{{ statusLabel(l.status) }}</span>
-              </div>
-              <div class="grid-2" style="margin-top:8px;gap:8px">
-                <div><span class="muted">Principal:</span> <strong>{{ l.principalAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong></div>
-                <div><span class="muted">Interest:</span> {{ l.interestAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }} ({{ l.interestRate }}%)</div>
-                <div><span class="muted">Released:</span> {{ l.releaseDate | date:'dd MMM yyyy' }}</div>
-                <div><span class="muted">Due:</span> {{ l.expectedReturnDate | date:'dd MMM yyyy' }}@if (l.daysOverdue && l.daysOverdue > 0) {<span class="danger" style="margin-left:4px;font-size:12px">({{ l.daysOverdue }}d late)</span>}</div>
-                <div><span class="muted">Paid:</span> <span class="success"><strong>{{ l.amountPaidSoFar | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong></span></div>
-                <div><span class="muted">Outstanding:</span> <span class="danger"><strong>{{ l.outstandingBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong></span></div>
-              </div>
-              @if (canRepay(l)) {
-                <div class="row" style="justify-content:flex-end;margin-top:10px">
-                  <button type="button" class="btn btn-primary btn-sm" (click)="openRepay(l, $event)">Repay</button>
+                <div class="field">
+                    <label class="label">To</label>
+                    <input class="input" type="date" formControlName="to" />
                 </div>
-              }
             </div>
-          }
+            <div class="field">
+                <label class="label">Status</label>
+                <div class="row-wrap">
+                    @for (s of statusOptions; track s) {
+                    <button type="button" class="chip"
+                            [class.chip-active]="isStatusFilterSelected(s)"
+                            (click)="toggleStatusFilter(s)">
+                        {{ statusLabel(s) }}
+                    </button>
+                    }
+                </div>
+            </div>
+            <div class="row" style="justify-content:flex-end;gap:8px">
+                <button type="button" class="btn btn-ghost btn-sm" (click)="resetFilters()">Reset</button>
+                <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card">
+        @if (loading()) {
+        <p class="muted">Loading your loans…</p>
+        } @else if (error()) {
+        <div class="toast toast-error">{{ error() }}</div>
+        } @else if (result(); as r) {
+        @if (r.items.length === 0) {
+        <p class="muted">You have no loans on record.</p>
+        } @else {
+        <div class="loan-cards">
+            @for (l of r.items; track l.loanId) {
+            <div class="loan-card" [class.loan-overdue]="l.status === 'Overdue'" (click)="openDetail(l)">
+                <div class="row" style="justify-content:space-between">
+                    <div>
+                        <strong>{{ l.loanCode }}</strong>
+                        <span class="muted" style="margin-left:8px;font-size:12px">{{ l.purpose || 'No purpose recorded' }}</span>
+                    </div>
+                    <span class="badge" [class]="statusClass(l.status)">{{ statusLabel(l.status) }}</span>
+                </div>
+                <div class="grid-2" style="margin-top:8px;gap:8px">
+                    <div><span class="muted">Principal:</span> <strong>{{ l.principalAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong></div>
+                    <div><span class="muted">Interest:</span> {{ l.interestAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }} ({{ l.interestRate }}%)</div>
+                    <div><span class="muted">Released:</span> {{ l.releaseDate | date:'dd MMM yyyy' }}</div>
+                    <div><span class="muted">Due:</span> {{ l.expectedReturnDate | date:'dd MMM yyyy' }}@if (l.daysOverdue && l.daysOverdue > 0) {<span class="danger" style="margin-left:4px;font-size:12px">({{ l.daysOverdue }}d late)</span>}</div>
+                    <div><span class="muted">Paid:</span> <span class="success"><strong>{{ l.amountPaidSoFar | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong></span></div>
+                    <div><span class="muted">Outstanding:</span> <span class="danger"><strong>{{ l.outstandingBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong></span></div>
+                </div>
+                @if (canRepay(l)) {
+                <div class="row" style="justify-content:flex-end;margin-top:10px">
+                    <!-- <button type="button" class="btn btn-primary btn-sm" (click)="openRepay(l, $event)">Repay</button> -->
+                </div>
+                }
+            </div>
+            }
         </div>
 
         <div class="row" style="justify-content:space-between;margin-top:12px">
-          <span class="muted">Showing {{ r.items.length }} of {{ r.totalCount }} — page {{ r.page }} of {{ totalPages() }}</span>
-          <div class="row" style="gap:6px">
-            <button class="btn btn-ghost btn-sm" (click)="goToPage(r.page - 1)" [disabled]="r.page <= 1">← Prev</button>
-            <button class="btn btn-ghost btn-sm" (click)="goToPage(r.page + 1)" [disabled]="r.page >= totalPages()">Next →</button>
-          </div>
+            <span class="muted">Showing {{ r.items.length }} of {{ r.totalCount }} — page {{ r.page }} of {{ totalPages() }}</span>
+            <div class="row" style="gap:6px">
+                <button class="btn btn-ghost btn-sm" (click)="goToPage(r.page - 1)" [disabled]="r.page <= 1">← Prev</button>
+                <button class="btn btn-ghost btn-sm" (click)="goToPage(r.page + 1)" [disabled]="r.page >= totalPages()">Next →</button>
+            </div>
         </div>
-      }
-    }
-  </section>
+        }
+        }
+    </section>
 
-  @if (detailFor(); as d) {
+    @if (detailFor(); as d) {
     <div class="modal-backdrop" (click)="closeDetail()">
-      <div class="modal modal-wide" (click)="$event.stopPropagation()">
-        <div class="row" style="justify-content:space-between;align-items:flex-start">
-          <div>
-            <h3 class="card-title">{{ d.loanCode }}</h3>
-            <p class="muted">{{ d.purpose || 'No purpose recorded' }}</p>
-          </div>
-          <span class="badge" [class]="statusClass(d.status)">{{ statusLabel(d.status) }}</span>
-        </div>
+        <div class="modal modal-wide" (click)="$event.stopPropagation()">
+            <div class="row" style="justify-content:space-between;align-items:flex-start">
+                <div>
+                    <h3 class="card-title">{{ d.loanCode }}</h3>
+                    <p class="muted">{{ d.purpose || 'No purpose recorded' }}</p>
+                </div>
+                <span class="badge" [class]="statusClass(d.status)">{{ statusLabel(d.status) }}</span>
+            </div>
 
-        <div class="grid-2" style="margin:12px 0">
-          <div class="kpi"><p class="kpi-label">Principal</p><p class="kpi-value">{{ d.principalAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
-          <div class="kpi"><p class="kpi-label">Interest</p><p class="kpi-value">{{ d.interestAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }} <span class="muted" style="font-size:12px">({{ d.interestRate }}% {{ d.interestType === 'MonthlyRecurring' ? '/mo' : 'flat' }})</span></p></div>
-          <div class="kpi"><p class="kpi-label">Tenure</p><p class="kpi-value">{{ d.tenureMonths }} month(s)</p></div>
-          <div class="kpi"><p class="kpi-label">Outstanding</p><p class="kpi-value danger">{{ d.outstandingBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
-          <div class="kpi"><p class="kpi-label">Released</p><p class="kpi-value" style="font-size:16px">{{ d.releaseDate | date:'dd MMM yyyy' }}</p></div>
-          <div class="kpi"><p class="kpi-label">Expected Return</p><p class="kpi-value" style="font-size:16px">{{ d.expectedReturnDate | date:'dd MMM yyyy' }}</p></div>
-          <div class="kpi"><p class="kpi-label">Paid Principal</p><p class="kpi-value success">{{ d.principalPaid | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
-          <div class="kpi"><p class="kpi-label">Paid Interest</p><p class="kpi-value success">{{ d.interestPaid | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
-        </div>
+            <div class="grid-2" style="margin:12px 0">
+                <div class="kpi"><p class="kpi-label">Principal</p><p class="kpi-value">{{ d.principalAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+                <div class="kpi"><p class="kpi-label">Interest</p><p class="kpi-value">{{ d.interestAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }} <span class="muted" style="font-size:12px">({{ d.interestRate }}% {{ d.interestType === 'MonthlyRecurring' ? '/mo' : 'flat' }})</span></p></div>
+                <div class="kpi"><p class="kpi-label">Tenure</p><p class="kpi-value">{{ d.tenureMonths }} month(s)</p></div>
+                <div class="kpi"><p class="kpi-label">Outstanding</p><p class="kpi-value danger">{{ d.outstandingBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+                <div class="kpi"><p class="kpi-label">Released</p><p class="kpi-value" style="font-size:16px">{{ d.releaseDate | date:'dd MMM yyyy' }}</p></div>
+                <div class="kpi"><p class="kpi-label">Expected Return</p><p class="kpi-value" style="font-size:16px">{{ d.expectedReturnDate | date:'dd MMM yyyy' }}</p></div>
+                <div class="kpi"><p class="kpi-label">Paid Principal</p><p class="kpi-value success">{{ d.principalPaid | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+                <div class="kpi"><p class="kpi-label">Paid Interest</p><p class="kpi-value success">{{ d.interestPaid | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+            </div>
 
-        <h4 class="card-title">Repayment History</h4>
-        @if (detailLoading()) {
-          <p class="muted">Loading…</p>
-        } @else if (repayments().length === 0) {
-          <p class="muted">No repayments recorded yet.</p>
-        } @else {
-          <table class="table">
-            <thead><tr><th>Date</th><th class="text-right">Amount</th><th class="text-right">Principal</th><th class="text-right">Interest</th><th>Mode</th><th>Ref</th></tr></thead>
-            <tbody>
-              @for (r of repayments(); track r.repaymentId) {
-                <tr>
-                  <td>{{ r.repaymentDate | date:'dd MMM yyyy' }}</td>
-                  <td class="text-right"><strong>{{ r.amount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong></td>
-                  <td class="text-right success">{{ r.principalPortion | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
-                  <td class="text-right success">{{ r.interestPortion | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
-                  <td><span class="badge badge-neutral">{{ r.paymentMode }}</span></td>
-                  <td class="muted">{{ r.referenceNo || '—' }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        }
+            <h4 class="card-title">Repayment History</h4>
+            @if (detailLoading()) {
+            <p class="muted">Loading…</p>
+            } @else if (repayments().length === 0) {
+            <p class="muted">No repayments recorded yet.</p>
+            } @else {
+            <table class="table">
+                <thead><tr><th>Date</th><th class="text-right">Amount</th><th class="text-right">Principal</th><th class="text-right">Interest</th><th>Mode</th><th>Ref</th></tr></thead>
+                <tbody>
+                    @for (r of repayments(); track r.repaymentId) {
+                    <tr>
+                        <td>{{ r.repaymentDate | date:'dd MMM yyyy' }}</td>
+                        <td class="text-right"><strong>{{ r.amount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong></td>
+                        <td class="text-right success">{{ r.principalPortion | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
+                        <td class="text-right success">{{ r.interestPortion | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
+                        <td><span class="badge badge-neutral">{{ r.paymentMode }}</span></td>
+                        <td class="muted">{{ r.referenceNo || '—' }}</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+            }
 
-        <div class="row" style="justify-content:flex-end;margin-top:12px;gap:8px">
-          @if (canRepay(d)) {
-            <button type="button" class="btn btn-primary" (click)="openRepay(d)">Repay</button>
-          }
-          <button type="button" class="btn btn-ghost" (click)="closeDetail()">Close</button>
+            <div class="row" style="justify-content:flex-end;margin-top:12px;gap:8px">
+                @if (canRepay(d)) {
+                <button type="button" class="btn btn-primary" (click)="openRepay(d)">Repay</button>
+                }
+                <button type="button" class="btn btn-ghost" (click)="closeDetail()">Close</button>
+            </div>
         </div>
-      </div>
     </div>
-  }
+    }
 
-  @if (repayFor(); as rp) {
+    @if (repayFor(); as rp) {
     <div class="modal-backdrop" (click)="closeRepay()">
-      <div class="modal" (click)="$event.stopPropagation()">
-        <div class="row" style="justify-content:space-between;align-items:flex-start">
-          <div>
-            <h3 class="card-title">Repay Loan — {{ rp.loanCode }}</h3>
-            <p class="muted">Choose what you want to repay and enter the amount.</p>
-          </div>
-          <span class="badge" [class]="statusClass(rp.status)">{{ statusLabel(rp.status) }}</span>
+        <div class="modal" (click)="$event.stopPropagation()">
+            <div class="row" style="justify-content:space-between;align-items:flex-start">
+                <div>
+                    <h3 class="card-title">Repay Loan — {{ rp.loanCode }}</h3>
+                    <p class="muted">Choose what you want to repay and enter the amount.</p>
+                </div>
+                <span class="badge" [class]="statusClass(rp.status)">{{ statusLabel(rp.status) }}</span>
+            </div>
+
+            @if (repayLoading()) {
+            <p class="muted">Loading outstanding balance…</p>
+            } @else if (outstanding(); as out) {
+            <div class="grid-2" style="margin:12px 0;gap:8px">
+                <div class="kpi"><p class="kpi-label">Principal Outstanding</p><p class="kpi-value danger">{{ out.principalOutstanding | currency:'INR':'symbol':'1.0-2':'en-IN' }}</p></div>
+                <div class="kpi"><p class="kpi-label">Interest Outstanding</p><p class="kpi-value danger">{{ out.interestOutstanding | currency:'INR':'symbol':'1.0-2':'en-IN' }}</p></div>
+                <div class="kpi" style="grid-column: span 2"><p class="kpi-label">Total Outstanding</p><p class="kpi-value danger">{{ out.totalOutstanding | currency:'INR':'symbol':'1.0-2':'en-IN' }}</p></div>
+            </div>
+
+            <form [formGroup]="repayForm" (ngSubmit)="submitRepay()" class="stack">
+                <div class="field">
+                    <label class="label">Repayment Type</label>
+                    <div class="row-wrap">
+                        <label class="chip" [class.chip-active]="repayForm.controls.repaymentType.value === 'PrincipalOnly'">
+                            <input type="radio" formControlName="repaymentType" value="PrincipalOnly" style="display:none" />
+                            Principal Only
+                        </label>
+                        <label class="chip" [class.chip-active]="repayForm.controls.repaymentType.value === 'InterestOnly'">
+                            <input type="radio" formControlName="repaymentType" value="InterestOnly" style="display:none" />
+                            Interest Only
+                        </label>
+                        <label class="chip" [class.chip-active]="repayForm.controls.repaymentType.value === 'PrincipalPlusInterest'">
+                            <input type="radio" formControlName="repaymentType" value="PrincipalPlusInterest" style="display:none" />
+                            Principal + Interest
+                        </label>
+                    </div>
+                </div>
+
+                @if (repayForm.controls.repaymentType.value === 'PrincipalOnly' || repayForm.controls.repaymentType.value === 'PrincipalPlusInterest') {
+                <div class="field">
+                    <label class="label">Principal Amount</label>
+                    <input class="input" type="number" min="0" step="0.01" formControlName="principalAmount" placeholder="0.00" />
+                    <p class="muted" style="font-size:12px">Max: {{ out.principalOutstanding | currency:'INR':'symbol':'1.0-2':'en-IN' }}</p>
+                </div>
+                }
+
+                @if (repayForm.controls.repaymentType.value === 'InterestOnly' || repayForm.controls.repaymentType.value === 'PrincipalPlusInterest') {
+                <div class="field">
+                    <label class="label">Interest Amount</label>
+                    <input class="input" type="number" min="0" step="0.01" formControlName="interestAmount" placeholder="0.00" />
+                    <p class="muted" style="font-size:12px">Max: {{ out.interestOutstanding | currency:'INR':'symbol':'1.0-2':'en-IN' }}</p>
+                </div>
+                }
+
+                <div class="grid-2">
+                    <div class="field">
+                        <label class="label">Repayment Date</label>
+                        <input class="input" type="date" formControlName="repaymentDate" />
+                    </div>
+                    <div class="field">
+                        <label class="label">Payment Mode</label>
+                        <select class="input" formControlName="paymentMode">
+                            <option value="Cash">Cash</option>
+                            <option value="Transfer">Transfer</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">Reference No. (optional)</label>
+                    <input class="input" type="text" formControlName="referenceNo" placeholder="UTR / Txn ID" />
+                </div>
+                <div class="field">
+                    <label class="label">Notes (optional)</label>
+                    <textarea class="input" rows="2" formControlName="notes"></textarea>
+                </div>
+
+                @if (repayError()) {
+                <div class="toast toast-error">{{ repayError() }}</div>
+                }
+                @if (repaySuccess()) {
+                <div class="toast toast-warning" style="background:#d1fae5;color:#065f46;border-left-color:#10b981">{{ repaySuccess() }}</div>
+                }
+
+                <div class="row" style="justify-content:flex-end;gap:8px">
+                    <button type="button" class="btn btn-ghost" (click)="closeRepay()" [disabled]="repaySubmitting()">Close</button>
+                    <button type="submit" class="btn btn-primary" [disabled]="repaySubmitting() || out.totalOutstanding <= 0">
+                        {{ repaySubmitting() ? 'Submitting…' : 'Submit Repayment' }}
+                    </button>
+                </div>
+            </form>
+            } @else if (repayError()) {
+            <div class="toast toast-error">{{ repayError() }}</div>
+            <div class="row" style="justify-content:flex-end;margin-top:12px">
+                <button type="button" class="btn btn-ghost" (click)="closeRepay()">Close</button>
+            </div>
+            }
         </div>
-
-        @if (repayLoading()) {
-          <p class="muted">Loading outstanding balance…</p>
-        } @else if (outstanding(); as out) {
-          <div class="grid-2" style="margin:12px 0;gap:8px">
-            <div class="kpi"><p class="kpi-label">Principal Outstanding</p><p class="kpi-value danger">{{ out.principalOutstanding | currency:'INR':'symbol':'1.0-2':'en-IN' }}</p></div>
-            <div class="kpi"><p class="kpi-label">Interest Outstanding</p><p class="kpi-value danger">{{ out.interestOutstanding | currency:'INR':'symbol':'1.0-2':'en-IN' }}</p></div>
-            <div class="kpi" style="grid-column: span 2"><p class="kpi-label">Total Outstanding</p><p class="kpi-value danger">{{ out.totalOutstanding | currency:'INR':'symbol':'1.0-2':'en-IN' }}</p></div>
-          </div>
-
-          <form [formGroup]="repayForm" (ngSubmit)="submitRepay()" class="stack">
-            <div class="field">
-              <label class="label">Repayment Type</label>
-              <div class="row-wrap">
-                <label class="chip" [class.chip-active]="repayForm.controls.repaymentType.value === 'PrincipalOnly'">
-                  <input type="radio" formControlName="repaymentType" value="PrincipalOnly" style="display:none" />
-                  Principal Only
-                </label>
-                <label class="chip" [class.chip-active]="repayForm.controls.repaymentType.value === 'InterestOnly'">
-                  <input type="radio" formControlName="repaymentType" value="InterestOnly" style="display:none" />
-                  Interest Only
-                </label>
-                <label class="chip" [class.chip-active]="repayForm.controls.repaymentType.value === 'PrincipalPlusInterest'">
-                  <input type="radio" formControlName="repaymentType" value="PrincipalPlusInterest" style="display:none" />
-                  Principal + Interest
-                </label>
-              </div>
-            </div>
-
-            @if (repayForm.controls.repaymentType.value === 'PrincipalOnly' || repayForm.controls.repaymentType.value === 'PrincipalPlusInterest') {
-              <div class="field">
-                <label class="label">Principal Amount</label>
-                <input class="input" type="number" min="0" step="0.01" formControlName="principalAmount" placeholder="0.00" />
-                <p class="muted" style="font-size:12px">Max: {{ out.principalOutstanding | currency:'INR':'symbol':'1.0-2':'en-IN' }}</p>
-              </div>
-            }
-
-            @if (repayForm.controls.repaymentType.value === 'InterestOnly' || repayForm.controls.repaymentType.value === 'PrincipalPlusInterest') {
-              <div class="field">
-                <label class="label">Interest Amount</label>
-                <input class="input" type="number" min="0" step="0.01" formControlName="interestAmount" placeholder="0.00" />
-                <p class="muted" style="font-size:12px">Max: {{ out.interestOutstanding | currency:'INR':'symbol':'1.0-2':'en-IN' }}</p>
-              </div>
-            }
-
-            <div class="grid-2">
-              <div class="field">
-                <label class="label">Repayment Date</label>
-                <input class="input" type="date" formControlName="repaymentDate" />
-              </div>
-              <div class="field">
-                <label class="label">Payment Mode</label>
-                <select class="input" formControlName="paymentMode">
-                  <option value="Cash">Cash</option>
-                  <option value="Transfer">Transfer</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="field">
-              <label class="label">Reference No. (optional)</label>
-              <input class="input" type="text" formControlName="referenceNo" placeholder="UTR / Txn ID" />
-            </div>
-            <div class="field">
-              <label class="label">Notes (optional)</label>
-              <textarea class="input" rows="2" formControlName="notes"></textarea>
-            </div>
-
-            @if (repayError()) {
-              <div class="toast toast-error">{{ repayError() }}</div>
-            }
-            @if (repaySuccess()) {
-              <div class="toast toast-warning" style="background:#d1fae5;color:#065f46;border-left-color:#10b981">{{ repaySuccess() }}</div>
-            }
-
-            <div class="row" style="justify-content:flex-end;gap:8px">
-              <button type="button" class="btn btn-ghost" (click)="closeRepay()" [disabled]="repaySubmitting()">Close</button>
-              <button type="submit" class="btn btn-primary" [disabled]="repaySubmitting() || out.totalOutstanding <= 0">
-                {{ repaySubmitting() ? 'Submitting…' : 'Submit Repayment' }}
-              </button>
-            </div>
-          </form>
-        } @else if (repayError()) {
-          <div class="toast toast-error">{{ repayError() }}</div>
-          <div class="row" style="justify-content:flex-end;margin-top:12px">
-            <button type="button" class="btn btn-ghost" (click)="closeRepay()">Close</button>
-          </div>
-        }
-      </div>
     </div>
-  }
+    }
 </div>

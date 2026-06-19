@@ -1,83 +1,83 @@
 <div class="stack">
-  @if (loading()) {
+    @if (loading()) {
     <p class="muted">Loading your summary…</p>
-  } @else if (error()) {
+    } @else if (error()) {
     <div class="toast toast-error">{{ error() }}</div>
-  } @else if (summary()) {
+    } @else if (summary()) {
     <header class="welcome card">
-      <div>
-        <h1 class="welcome-title">Welcome, {{ summary()!.profile.fullName }}</h1>
-        <div class="muted">
-          Member ID: <strong>{{ summary()!.profile.memberCode }}</strong> ·
-          Joined: {{ summary()!.profile.joiningDate | date:'MMM yyyy' }}
+        <div>
+            <h1 class="welcome-title">Welcome, {{ summary()!.profile.fullName }}</h1>
+            <div class="muted">
+                Member ID: <strong>{{ summary()!.profile.memberCode }}</strong> ·
+                Joined: {{ summary()!.profile.joiningDate | date:'MMM yyyy' }}
+            </div>
         </div>
-      </div>
-      <span class="badge" [class]="overallStatusClass(summary()!.status)" style="font-size:14px;padding:6px 14px;">
-        {{ overallStatusLabel(summary()!.status) }}
-      </span>
+        <span class="badge" [class]="overallStatusClass(summary()!.status)" style="font-size:14px;padding:6px 14px;">
+            {{ overallStatusLabel(summary()!.status) }}
+        </span>
     </header>
 
     <section class="kpi-grid">
-      <div class="kpi"><p class="kpi-label">Total Expected</p><p class="kpi-value">{{ summary()!.totalExpected | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
-      <div class="kpi"><p class="kpi-label">Total Paid</p><p class="kpi-value">{{ summary()!.totalPaid | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
-      <div class="kpi"><p class="kpi-label">Outstanding</p><p class="kpi-value" [class.danger]="summary()!.outstanding > 0">{{ summary()!.outstanding | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
-      <div class="kpi"><p class="kpi-label">Last Payment</p><p class="kpi-value" style="font-size:18px;">{{ summary()!.lastPaymentDate ? (summary()!.lastPaymentDate | date:'dd MMM yyyy') : '—' }}</p></div>
+        <div class="kpi"><p class="kpi-label">Total Expected</p><p class="kpi-value">{{ summary()!.totalExpected | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+        <div class="kpi"><p class="kpi-label">Total Paid</p><p class="kpi-value">{{ summary()!.totalPaid | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+        <div class="kpi"><p class="kpi-label">Outstanding</p><p class="kpi-value" [class.danger]="summary()!.outstanding > 0">{{ summary()!.outstanding | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+        <div class="kpi"><p class="kpi-label">Last Payment</p><p class="kpi-value" style="font-size:18px;">{{ summary()!.lastPaymentDate ? (summary()!.lastPaymentDate | date:'dd MMM yyyy') : '—' }}</p></div>
     </section>
 
     @if (summary(); as s) {
-      <section class="card">
+    <section class="card">
         <h3 class="card-title">Group Finance Snapshot</h3>
         <div class="kpi-grid">
-          <div class="kpi"><p class="kpi-label">Group Collected</p><p class="kpi-value">{{ s.groupTotalCollected | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
-          <div class="kpi"><p class="kpi-label">Group Expenses</p><p class="kpi-value" style="color:#ef4444">{{ s.groupTotalExpenses | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
-          <div class="kpi"><p class="kpi-label">Interest Paid</p><p class="kpi-value" style="color:#10b981">{{ s.groupInterestPaid | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
-          <div class="kpi"><p class="kpi-label">Outstanding Loans</p><p class="kpi-value" [class.danger]="s.groupOutstandingLoans > 0">{{ s.groupOutstandingLoans | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
-          <div class="kpi"><p class="kpi-label">Net Balance</p><p class="kpi-value" [class]="netBalanceClass()">{{ s.groupNetBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+            <div class="kpi"><p class="kpi-label">Group Collected</p><p class="kpi-value">{{ s.groupTotalCollected | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+            <div class="kpi"><p class="kpi-label">Group Expenses</p><p class="kpi-value" style="color:#ef4444">{{ s.groupTotalExpenses | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+            <div class="kpi"><p class="kpi-label">Interest Paid</p><p class="kpi-value" style="color:#10b981">{{ s.groupInterestPaid | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+            <div class="kpi"><p class="kpi-label">Outstanding Loans</p><p class="kpi-value" [class.danger]="s.groupOutstandingLoans > 0">{{ s.groupOutstandingLoans | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+            <div class="kpi"><p class="kpi-label">Net Balance</p><p class="kpi-value" [class]="netBalanceClass()">{{ s.groupNetBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
         </div>
         <a routerLink="/member/expenses" class="btn btn-ghost btn-sm" style="margin-top:8px">View Group Expenses →</a>
-      </section>
+    </section>
     }
 
     <div class="two-col">
-      <div class="card">
-        <h3 class="card-title">Group Collection Rate</h3>
-        <div class="group-rate">
-          <div class="rate">{{ summary()!.groupCollectionPct | number:'1.0-1' }}%</div>
-          <div class="bar"><div class="fill" [style.width.%]="summary()!.groupCollectionPct"></div></div>
-          <div class="muted" style="font-size:12px">
-            Expected {{ summary()!.groupExpected | currency:'INR':'symbol':'1.0-0':'en-IN' }} ·
-            Collected {{ summary()!.groupCollected | currency:'INR':'symbol':'1.0-0':'en-IN' }}
-          </div>
+        <div class="card">
+            <h3 class="card-title">Group Collection Rate</h3>
+            <div class="group-rate">
+                <div class="rate">{{ summary()!.groupCollectionPct | number:'1.0-1' }}%</div>
+                <div class="bar"><div class="fill" [style.width.%]="summary()!.groupCollectionPct"></div></div>
+                <div class="muted" style="font-size:12px">
+                    Expected {{ summary()!.groupExpected | currency:'INR':'symbol':'1.0-0':'en-IN' }} ·
+                    Collected {{ summary()!.groupCollected | currency:'INR':'symbol':'1.0-0':'en-IN' }}
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="card">
-        <h3 class="card-title">Actions</h3>
-        <div class="stack">
-          @if (summary()?.allowMemberPaymentSubmission) {
-            <a class="btn btn-primary" routerLink="/member/proofs">📎 Upload Payment Proof</a>
-          }
-          <a class="btn btn-secondary" routerLink="/member/history">📜 View Full History</a>
+        <div class="card">
+            <h3 class="card-title">Actions</h3>
+            <div class="stack">
+                @if (summary()?.allowMemberPaymentSubmission) {
+                <a class="btn btn-primary" routerLink="/member/proofs">📎 Upload Payment Proof</a>
+                }
+                <a class="btn btn-secondary" routerLink="/member/history">📜 View Full History</a>
+            </div>
         </div>
-      </div>
     </div>
 
     <section class="card">
-      <h3 class="card-title">Recent Payment History</h3>
-      <table class="table">
-        <thead><tr><th>Month</th><th class="text-right">Expected</th><th class="text-right">Paid</th><th>Date Paid</th><th>Status</th><th>Remarks</th></tr></thead>
-        <tbody>
-          @for (h of history().slice().reverse().slice(0, 12); track h.month) {
-            <tr>
-              <td>{{ h.month | date:'MMM yyyy' }}</td>
-              <td class="text-right">{{ h.expected | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
-              <td class="text-right">{{ h.paid | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
-              <td>{{ h.datePaid ? (h.datePaid | date:'dd MMM yyyy') : '—' }}</td>
-              <td><span class="badge" [class]="statusBadge(h.status)">{{ statusChar(h.status) }} {{ h.status }}</span></td>
-              <td class="muted">{{ h.remarks || '' }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
+        <h3 class="card-title">Recent Payment History</h3>
+        <table class="table">
+            <thead><tr><th>Month</th><th class="text-right">Expected</th><th class="text-right">Paid</th><th>Date Paid</th><th>Status</th><th>Remarks</th></tr></thead>
+            <tbody>
+                @for (h of history().slice().slice(0, 12); track h.month) {
+                <tr>
+                    <td>{{ h.month | date:'MMM yyyy' }}</td>
+                    <td class="text-right">{{ h.expected | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
+                    <td class="text-right">{{ h.paid | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
+                    <td>{{ h.datePaid ? (h.datePaid | date:'dd MMM yyyy') : '—' }}</td>
+                    <td><span class="badge" [class]="statusBadge(h.status)">{{ statusChar(h.status) }} {{ h.status }}</span></td>
+                    <td class="muted">{{ h.remarks || '' }}</td>
+                </tr>
+                }
+            </tbody>
+        </table>
     </section>
-  }
+    }
 </div>
