@@ -70,6 +70,11 @@ export const routes: Routes = [
           import('./features/admin/loans/admin-loan-summary.component').then((m) => m.AdminLoanSummaryComponent)
       },
       {
+        path: 'fines',
+        loadComponent: () =>
+          import('./features/admin/fines/admin-fines.component').then((m) => m.AdminFinesComponent)
+      },
+      {
         path: 'settings',
         loadComponent: () =>
           import('./features/admin/settings/admin-settings.component').then((m) => m.AdminSettingsComponent)

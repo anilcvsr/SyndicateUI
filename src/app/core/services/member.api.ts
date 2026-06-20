@@ -2,10 +2,12 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import {
+  MemberFineViewDto,
   MemberHomeSummaryDto,
   MemberPaymentHistoryItemDto,
   MemberProfileDto,
-  MemberProofDto
+  MemberProofDto,
+  NotificationDto
 } from '../models/member.models';
 import {
   ExpenseCategoryDto,
@@ -91,5 +93,16 @@ export class MemberApi {
   }
   loanSnapshot() {
     return this.http.get<MemberLoanSnapshotDto>(`${this.base}/loans/snapshot`);
+  }
+
+  // ----- Fines -----
+  myFines() {
+    return this.http.get<MemberFineViewDto[]>(`${this.base}/fines`);
+  }
+  notifications() {
+    return this.http.get<NotificationDto[]>(`${this.base}/fines/notifications`);
+  }
+  markNotificationRead(notificationId: number) {
+    return this.http.put<void>(`${this.base}/fines/notifications/${notificationId}/read`, {});
   }
 }

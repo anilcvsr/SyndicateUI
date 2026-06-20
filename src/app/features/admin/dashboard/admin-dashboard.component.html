@@ -25,6 +25,9 @@
         <div class="kpi"><p class="kpi-label">Expected YTD</p><p class="kpi-value">{{ summary()!.totalExpectedYtd | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
         <div class="kpi"><p class="kpi-label">Collected YTD</p><p class="kpi-value">{{ summary()!.totalCollectedYtd | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
         <div class="kpi"><p class="kpi-label">Outstanding</p><p class="kpi-value">{{ summary()!.totalOutstanding | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+        @if (summary()!.totalFinesCollected > 0) {
+        <div class="kpi"><p class="kpi-label">Fines Collected</p><p class="kpi-value" style="color:#f59e0b">{{ summary()!.totalFinesCollected | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+        }
     </section>
 
     @if (loanSummary(); as l) {

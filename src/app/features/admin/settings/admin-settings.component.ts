@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { AdminApi } from '../../../core/services/admin.api';
 import { YearlyContributionDto } from '../../../core/models/admin.models';
+import { MemberDto } from '../../../core/models/admin.models';
 
 function dateRangeValidator(): ValidatorFn {
     return (group: AbstractControl): ValidationErrors | null => {
@@ -41,6 +42,33 @@ export class AdminSettingsComponent {
         trackingEnd: ['', [Validators.required]],
         currency: ['INR', [Validators.required]],
         openingBalance: [0, [Validators.required, Validators.min(0)]]
+    });
+
+    // ----- Fine Policy -----
+    fineEnabled = signal(true);
+    fineGracePeriod = signal(3);
+    fineAmount = signal(100);
+    fineSaving = signal(false);
+    fineError = signal<string | null>(null);
+    fineSuccess = signal<string | null>(null);
+
+    fineForm = this.fb.group({
+        finesEnabled: [true],
+        gracePeriodMonths: [3, [Validators.required, Validators.min(1), Validators.max(24)]],
+        fineAmountPerMonth: [100, [Validators.required, Validators.min(0)]]
+    });
+
+    // ----- Member fine override -----
+    members = signal<MemberDto[]>([]);
+    overrideMemberId = signal<number | null>(null);
+    overrideAmount = signal<number | null>(null);
+    overrideSaving = signal(false);
+    overrideError = signal<string | null>(null);
+    overrideSuccess = signal<string | null>(null);
+
+    overrideForm = this.fb.group({
+        memberId: [null as number | null, Validators.required],
+        fineOverrideAmount: [null as number | null, Validators.min(0)]
     });
 
     // ----- Yearly Contributions -----
@@ -93,9 +121,19 @@ export class AdminSettingsComponent {
                     openingBalance: s.openingBalance
                 });
                 this.allowMemberPaymentSubmission.set(s.allowMemberPaymentSubmission);
+                this.fineForm.patchValue({
+                    finesEnabled: s.finesEnabled,
+                    gracePeriodMonths: s.fineGracePeriodMonths,
+                    fineAmountPerMonth: s.fineAmountPerMonth
+                });
                 this.loading.set(false);
             },
             error: (e) => { this.error.set(e?.error?.message ?? 'Failed to load.'); this.loading.set(false); }
+        });
+
+        this.api.listMembers().subscribe({
+            next: (m) => this.members.set(m),
+            error: () => {}
         });
 
         this.loadYearly();
@@ -138,6 +176,49 @@ export class AdminSettingsComponent {
                 this.submissionSaving.set(false);
                 this.submissionError.set(e?.error?.message ?? 'Failed to update setting.');
             }
+        });
+    }
+
+    saveFineSettings() {
+        this.fineError.set(null); this.fineSuccess.set(null);
+        if (this.fineForm.invalid || this.fineSaving()) { this.fineForm.markAllAsTouched(); return; }
+        this.fineSaving.set(true);
+        const v = this.fineForm.getRawValue();
+        this.api.updateFineSettings({
+            finesEnabled: v.finesEnabled ?? true,
+            gracePeriodMonths: v.gracePeriodMonths!,
+            fineAmountPerMonth: v.fineAmountPerMonth!
+        }).subscribe({
+            next: () => { this.fineSaving.set(false); this.fineSuccess.set('Fine policy saved. Existing active fines updated retroactively.'); },
+            error: (e) => { this.fineSaving.set(false); this.fineError.set(e?.error?.message ?? 'Save failed.'); }
+        });
+    }
+
+    onOverrideMemberChange(id: number | null) {
+        this.overrideMemberId.set(id);
+        this.overrideError.set(null);
+        this.overrideSuccess.set(null);
+        if (id) {
+            const member = this.members().find(m => m.memberId === id);
+            this.overrideForm.patchValue({ memberId: id, fineOverrideAmount: member?.fineOverrideAmount ?? null });
+        }
+    }
+
+    saveOverride() {
+        this.overrideError.set(null); this.overrideSuccess.set(null);
+        const v = this.overrideForm.getRawValue();
+        if (!v.memberId) return;
+        this.overrideSaving.set(true);
+        this.api.setMemberFineOverride(v.memberId, { fineOverrideAmount: v.fineOverrideAmount }).subscribe({
+            next: () => {
+                this.overrideSaving.set(false);
+                this.overrideSuccess.set(
+                    v.fineOverrideAmount != null
+                        ? `Per-member fine amount set to ₹${v.fineOverrideAmount}.`
+                        : 'Per-member override cleared. Member will use global amount.'
+                );
+            },
+            error: (e) => { this.overrideSaving.set(false); this.overrideError.set(e?.error?.message ?? 'Save failed.'); }
         });
     }
 

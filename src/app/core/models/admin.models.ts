@@ -6,6 +6,7 @@ export interface MemberDto {
     phone: string;
     joiningDate: string;
     isActive: boolean;
+    fineOverrideAmount: number | null;
 }
 
 export interface CreateMemberPayload {
@@ -70,6 +71,7 @@ export interface DashboardSummaryDto {
     membersOverdue: number;
     membersPartial: number;
     membersOnTrack: number;
+    totalFinesCollected: number;
 }
 
 export interface MonthlyCollectionDto {
@@ -100,6 +102,9 @@ export interface AppSettingsDto {
     currency: string;
     allowMemberPaymentSubmission: boolean;
     openingBalance: number;
+    finesEnabled: boolean;
+    fineGracePeriodMonths: number;
+    fineAmountPerMonth: number;
 }
 
 export interface UpdatePaymentSubmissionPayload {
@@ -185,4 +190,54 @@ export interface UpdateYearlyContributionPayload {
     endDate: string;
     monthlyAmount: number;
     notes: string | null;
+}
+
+export interface MemberFineDto {
+    fineId: number;
+    memberId: number;
+    memberCode: string;
+    memberName: string;
+    monthReference: string;
+    fineAmount: number;
+    status: string;
+    waivedAmount: number;
+    waiveReason: string | null;
+    appliedAt: string;
+    waivedAt: string | null;
+    amountPaidSoFar: number;
+    paidAt: string | null;
+}
+
+export interface RecordFinePaymentPayload {
+    amountPaid: number;
+    notes: string | null;
+}
+
+export interface FinePaymentDto {
+    finePaymentId: number;
+    fineId: number;
+    amountPaid: number;
+    notes: string | null;
+    recordedAt: string;
+}
+
+export interface WaiveFinePayload {
+    waiveAmount: number | null;
+    reason: string | null;
+}
+
+export interface FineSettingsDto {
+    finesEnabled: boolean;
+    gracePeriodMonths: number;
+    fineAmountPerMonth: number;
+}
+
+export interface UpdateFineSettingsPayload {
+    finesEnabled: boolean;
+    gracePeriodMonths: number;
+    fineAmountPerMonth: number;
+}
+
+export interface MemberFineOverridePayload {
+    fineOverrideAmount: number | null;
 }

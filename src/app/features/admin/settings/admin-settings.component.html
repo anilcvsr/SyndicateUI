@@ -63,6 +63,72 @@
     </section>
 
     <section class="card">
+        <div>
+            <h3 class="card-title" style="margin:0">Fine Policy</h3>
+            <p class="muted" style="margin:4px 0 12px">Configure late-payment fine rules for this syndicate. Changing the fine amount updates all active unpaid fines retroactively.</p>
+        </div>
+        <form [formGroup]="fineForm" (ngSubmit)="saveFineSettings()" class="stack">
+            <div class="row" style="align-items:center;gap:8px">
+                <label class="row" style="align-items:center;gap:8px;cursor:pointer">
+                    <input type="checkbox" formControlName="finesEnabled" />
+                    <span>Enable Fines</span>
+                </label>
+                <span class="muted" style="font-size:12px">When disabled, no new fines are applied. Existing active fines are preserved.</span>
+            </div>
+            <div class="grid-2">
+                <div class="field">
+                    <label class="label">Grace Period (months)</label>
+                    <input class="input" type="number" formControlName="gracePeriodMonths" min="1" max="24" />
+                    <small class="muted">Number of consecutive unpaid months before first fine is applied.</small>
+                </div>
+                <div class="field">
+                    <label class="label">Fine Amount per Month (₹)</label>
+                    <input class="input" type="number" formControlName="fineAmountPerMonth" min="0" step="0.01" />
+                    <small class="muted">Applied for each unpaid month beyond the grace period.</small>
+                </div>
+            </div>
+            @if (fineError()) { <div class="toast toast-error">{{ fineError() }}</div> }
+            @if (fineSuccess()) { <div class="toast toast-success">{{ fineSuccess() }}</div> }
+            <div class="row" style="justify-content:flex-end">
+                <button type="submit" class="btn btn-primary" [disabled]="fineSaving()">{{ fineSaving() ? 'Saving...' : 'Save Fine Policy' }}</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card">
+        <div>
+            <h3 class="card-title" style="margin:0">Per-Member Fine Override</h3>
+            <p class="muted" style="margin:4px 0 12px">Set a custom fine amount for a specific member. Leave blank to clear the override and revert to the global fine amount.</p>
+        </div>
+        <form [formGroup]="overrideForm" (ngSubmit)="saveOverride()" class="stack">
+            <div class="grid-2">
+                <div class="field">
+                    <label class="label">Member</label>
+                    <select class="input" formControlName="memberId"
+                            (change)="onOverrideMemberChange(+$any($event.target).value || null)">
+                        <option [value]="null">— Select a member —</option>
+                        @for (m of members(); track m.memberId) {
+                        <option [value]="m.memberId">{{ m.memberCode }} — {{ m.fullName }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="label">Custom Fine Amount (₹)</label>
+                    <input class="input" type="number" formControlName="fineOverrideAmount" min="0" step="0.01"
+                           placeholder="Leave blank to clear override" />
+                </div>
+            </div>
+            @if (overrideError()) { <div class="toast toast-error">{{ overrideError() }}</div> }
+            @if (overrideSuccess()) { <div class="toast toast-success">{{ overrideSuccess() }}</div> }
+            <div class="row" style="justify-content:flex-end">
+                <button type="submit" class="btn btn-primary" [disabled]="overrideSaving() || !overrideForm.get('memberId')?.value">
+                    {{ overrideSaving() ? 'Saving...' : 'Save Override' }}
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card">
         <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
             <div>
                 <h3 class="card-title" style="margin:0">Yearly Contribution Amounts</h3>

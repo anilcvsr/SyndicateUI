@@ -46,3 +46,19 @@ export interface MemberProofDto {
   submittedAt: string;
   reviewedAt: string | null;
 }
+
+export interface MemberFineViewDto {
+  fineId: number;
+  monthReference: string;
+  fineAmount: number;
+  status: string;
+  waivedAmount: number;
+  appliedAt: string;
+}
+
+export interface NotificationDto {
+  notificationId: number;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}

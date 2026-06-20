@@ -7,19 +7,25 @@ import {
   CreateMemberPayload,
   CreateYearlyContributionPayload,
   DashboardSummaryDto,
+  FineSettingsDto,
   MemberDto,
+  MemberFineDto,
+  MemberFineOverridePayload,
   MonthlyCollectionDto,
   MonthlyLogDto,
   PaymentAuditEntryDto,
   PaymentDto,
   PendingDueDto,
   ProofVerificationDto,
+  RecordFinePaymentPayload,
   RecordPaymentPayload,
   UpdateAppSettingsPayload,
+  UpdateFineSettingsPayload,
   UpdateMemberPayload,
   UpdatePaymentPayload,
   UpdatePaymentSubmissionPayload,
   UpdateYearlyContributionPayload,
+  WaiveFinePayload,
   YearlyContributionDto
 } from '../models/admin.models';
 import {
@@ -255,5 +261,31 @@ export class AdminApi {
     return this.http.get<LoanRepaymentAuditEntryDto[]>(
       `${this.base}/loans/repayments/${repaymentId}/audit`
     );
+  }
+
+  // ----- Fines -----
+  getMemberFines(memberId: number) {
+    return this.http.get<MemberFineDto[]>(`${this.base}/fines/member/${memberId}`);
+  }
+  evaluateMemberFines(memberId: number) {
+    return this.http.post<{ message: string }>(`${this.base}/fines/member/${memberId}/evaluate`, {});
+  }
+  evaluateAllFines() {
+    return this.http.post<{ message: string }>(`${this.base}/fines/evaluate-all`, {});
+  }
+  waiveFine(fineId: number, payload: WaiveFinePayload) {
+    return this.http.put<MemberFineDto>(`${this.base}/fines/${fineId}/waive`, payload);
+  }
+  recordFinePayment(fineId: number, payload: RecordFinePaymentPayload) {
+    return this.http.post<MemberFineDto>(`${this.base}/fines/${fineId}/pay`, payload);
+  }
+  getFineSettings() {
+    return this.http.get<FineSettingsDto>(`${this.base}/fines/settings`);
+  }
+  updateFineSettings(payload: UpdateFineSettingsPayload) {
+    return this.http.put<FineSettingsDto>(`${this.base}/fines/settings`, payload);
+  }
+  setMemberFineOverride(memberId: number, payload: MemberFineOverridePayload) {
+    return this.http.put<MemberDto>(`${this.base}/fines/member/${memberId}/override`, payload);
   }
 }
