@@ -58,7 +58,7 @@ export class AuthService {
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem(STORAGE_KEY);
     }
-    this.router.navigate(['/login']);
+    this.router.navigate(['/']);
   }
 
   getAccessToken(): string | null {

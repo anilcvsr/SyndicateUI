@@ -81,7 +81,6 @@
               <td><input type="checkbox" [checked]="isSelected(d.memberId)" (change)="toggleSelect(d.memberId)"></td>
               <td>
                 <strong>{{ d.memberName }}</strong>
-                <div class="muted" style="font-size:12px">{{ d.memberCode }}</div>
               </td>
               <td><span class="badge" [ngClass]="priorityBadge(d.priority)">{{ d.priority }}</span></td>
               <td>{{ d.monthsPending }}</td>

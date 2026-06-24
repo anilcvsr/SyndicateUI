@@ -12,10 +12,9 @@
   z-index: 10;
 }
 .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-.brand-mark {
+.brand-logo {
   width: 30px; height: 30px; border-radius: 8px;
-  background: var(--color-primary); color: #fff;
-  display: flex; align-items: center; justify-content: center; font-weight: 700;
+  object-fit: contain;
 }
 .topnav { display: flex; gap: 4px; flex: 1; flex-wrap: nowrap; overflow-x: auto; }
 .nav-link {
