@@ -1,24 +1,40 @@
-<div class="shell">
-  <aside class="sidebar">
+<div class="shell" [class.menu-open]="menuOpen()">
+  <!-- Mobile topbar (hamburger) -->
+  <header class="mobile-topbar">
     <div class="brand">
       <div class="brand-mark">S</div>
-      <div>
+      <span class="brand-name">Syndicate</span>
+    </div>
+    <button class="hamburger" (click)="toggleMenu()" [attr.aria-expanded]="menuOpen()" aria-label="Toggle navigation">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <!-- Backdrop (mobile only) -->
+  @if (menuOpen()) {
+    <div class="backdrop" (click)="closeMenu()"></div>
+  }
+
+  <aside class="sidebar" [class.open]="menuOpen()">
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <div class="brand-text">
         <div class="brand-name">Syndicate</div>
         <div class="brand-role muted">Admin Console</div>
       </div>
     </div>
     <nav>
       @for (item of nav; track item.path) {
-        <a [routerLink]="item.path" routerLinkActive="active" class="nav-link">
+        <a [routerLink]="item.path" routerLinkActive="active" class="nav-link" [title]="item.label">
           <span class="icon">{{ item.icon }}</span>
-          <span>{{ item.label }}</span>
+          <span class="nav-label">{{ item.label }}</span>
         </a>
       }
     </nav>
     <div class="sidebar-footer">
       <div class="user">
         <div class="avatar">{{ auth.displayName().charAt(0) || 'A' }}</div>
-        <div>
+        <div class="user-info">
           <div class="user-name">{{ auth.displayName() || 'Admin' }}</div>
           <div class="user-role muted">Administrator</div>
         </div>
@@ -26,6 +42,7 @@
       <button class="btn btn-ghost btn-sm" (click)="logout()">Logout</button>
     </div>
   </aside>
+
   <main class="content">
     <router-outlet />
   </main>

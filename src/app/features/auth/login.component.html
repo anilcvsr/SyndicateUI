@@ -68,7 +68,7 @@
               </span>
             }
           </div>
-          <div class="row">
+          <div class="row row-mobile-col">
             <button class="btn btn-secondary" type="button" (click)="otpSent.set(false); otpForm.reset()">Change Number</button>
             <button class="btn btn-ghost btn-sm" type="button" (click)="requestOtp()" [disabled]="resendIn() > 0 || loading()">
               {{ resendIn() > 0 ? 'Resend in ' + resendIn() + 's' : 'Resend OTP' }}

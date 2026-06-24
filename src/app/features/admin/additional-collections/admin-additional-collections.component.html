@@ -60,6 +60,7 @@
       @if (r.items.length === 0) {
         <p class="muted">No entries found for the selected filters. Click "+ Add Entry" to record income.</p>
       } @else {
+        <div class="table-wrapper">
         <table class="table">
           <thead>
             <tr>
@@ -98,6 +99,7 @@
             }
           </tbody>
         </table>
+        </div>
 
         <div class="row" style="justify-content:space-between;margin-top:12px;align-items:center">
           <span class="muted">
@@ -178,6 +180,7 @@
         } @else if (history().length === 0) {
           <p class="muted">No history entries.</p>
         } @else {
+          <div class="table-wrapper">
           <table class="table">
             <thead><tr><th>When</th><th>Action</th><th>Details</th></tr></thead>
             <tbody>
@@ -190,6 +193,7 @@
               }
             </tbody>
           </table>
+          </div>
         }
         <div class="row" style="justify-content:flex-end">
           <button type="button" class="btn btn-ghost" (click)="closeHistory()">Close</button>
@@ -239,6 +243,7 @@
         @if (catLoading()) {
           <p class="muted">Loading…</p>
         } @else {
+          <div class="table-wrapper">
           <table class="table">
             <thead>
               <tr>
@@ -276,6 +281,7 @@
               }
             </tbody>
           </table>
+          </div>
         }
 
         @if (editingCat(); as ec) {

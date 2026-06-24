@@ -54,6 +54,7 @@
     } @else if (rows().length === 0) {
       <p class="muted">No submissions yet.</p>
     } @else {
+      <div class="table-wrapper">
       <table class="table">
         <thead><tr><th>Month</th><th class="text-right">Amount</th><th>Mode</th><th>Submitted</th><th>Status</th><th>File</th></tr></thead>
         <tbody>
@@ -72,6 +73,7 @@
           }
         </tbody>
       </table>
+      </div>
     }
   </div>
 </div>

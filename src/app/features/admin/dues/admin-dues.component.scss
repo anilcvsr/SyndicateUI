@@ -91,3 +91,9 @@
   border-radius: var(--radius-sm);
   margin-bottom: 16px;
 }
+
+@media (max-width: 767px) {
+  .page-header { flex-direction: column; align-items: stretch; }
+  .reminder-list { max-height: calc(60dvh); }
+  .modal-wide { width: min(100%, 720px); }
+}

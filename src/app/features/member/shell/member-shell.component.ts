@@ -1,8 +1,9 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { MemberApi } from '../../../core/services/member.api';
+import { filter, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-member-shell',
@@ -11,10 +12,13 @@ import { MemberApi } from '../../../core/services/member.api';
   templateUrl: './member-shell.component.html',
   styleUrl: './member-shell.component.scss'
 })
-export class MemberShellComponent {
+export class MemberShellComponent implements OnInit, OnDestroy {
   auth = inject(AuthService);
   private api = inject(MemberApi);
+  private router = inject(Router);
+  private routerSub?: Subscription;
 
+  mobileNavOpen = signal(false);
   private allowSubmission = signal(false);
 
   nav = computed(() => [
@@ -28,6 +32,16 @@ export class MemberShellComponent {
     { path: '/member/group-financial', label: 'Group Financial Details', icon: '📊' }
   ]);
 
+  ngOnInit() {
+    this.routerSub = this.router.events
+      .pipe(filter(e => e instanceof NavigationEnd))
+      .subscribe(() => this.mobileNavOpen.set(false));
+  }
+
+  ngOnDestroy() {
+    this.routerSub?.unsubscribe();
+  }
+
   constructor() {
     this.api.homeSummary().subscribe({
       next: (s) => this.allowSubmission.set(s.allowMemberPaymentSubmission),
@@ -35,5 +49,6 @@ export class MemberShellComponent {
     });
   }
 
+  toggleNav() { this.mobileNavOpen.update(v => !v); }
   logout() { this.auth.logout(); }
 }

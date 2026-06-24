@@ -90,3 +90,15 @@
   border-radius: 8px;
   border-left: 4px solid #f59e0b;
 }
+
+@media (max-width: 767px) {
+  .loan-cards { grid-template-columns: 1fr; }
+  .modal-backdrop { align-items: flex-end; padding: 0; }
+  .modal, .modal.modal-wide {
+    max-width: 100%;
+    width: 100%;
+    border-radius: 12px 12px 0 0;
+    max-height: 90dvh;
+    padding: 16px;
+  }
+}

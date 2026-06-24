@@ -88,6 +88,7 @@
         @if (r.items.length === 0) {
         <p class="muted">No loans found. Click "+ Issue Loan" to create one.</p>
         } @else {
+        <div class="table-wrapper">
         <table class="table">
             <thead>
                 <tr>
@@ -139,6 +140,7 @@
                 }
             </tbody>
         </table>
+        </div>
 
         <div class="row" style="justify-content:space-between;margin-top:12px">
             <span class="muted">Showing {{ r.items.length }} of {{ r.totalCount }} — page {{ r.page }} of {{ totalPages() }}</span>
@@ -246,6 +248,7 @@
             } @else if (repayments().length === 0) {
             <p class="muted">No repayments yet.</p>
             } @else {
+            <div class="table-wrapper">
             <table class="table">
                 <thead><tr><th>Date</th><th>Amount</th><th>Principal</th><th>Interest</th><th>Mode</th><th>Ref</th><th>By</th><th></th></tr></thead>
                 <tbody>
@@ -267,12 +270,14 @@
                     }
                 </tbody>
             </table>
+            </div>
             }
 
             <h4 class="card-title">Audit Trail</h4>
             @if (history().length === 0) {
             <p class="muted">No history entries.</p>
             } @else {
+            <div class="table-wrapper">
             <table class="table">
                 <thead><tr><th>When</th><th>Action</th><th>Details</th></tr></thead>
                 <tbody>
@@ -285,6 +290,7 @@
                     }
                 </tbody>
             </table>
+            </div>
             }
 
             <div class="row" style="justify-content:flex-end;gap:8px;margin-top:12px">
@@ -455,6 +461,7 @@
             @if (rec.diffs.length === 0) {
             <p class="success"><strong>✓ All loan statuses are consistent.</strong> No fixes required.</p>
             } @else {
+            <div class="table-wrapper">
             <table class="table">
                 <thead>
                     <tr>
@@ -479,6 +486,7 @@
                     }
                 </tbody>
             </table>
+            </div>
             }
             <div class="row" style="justify-content:flex-end;gap:8px;margin-top:12px">
                 <button type="button" class="btn btn-ghost" (click)="closeReconcile()">Close</button>

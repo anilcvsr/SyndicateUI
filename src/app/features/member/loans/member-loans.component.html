@@ -129,6 +129,7 @@
             } @else if (repayments().length === 0) {
             <p class="muted">No repayments recorded yet.</p>
             } @else {
+            <div class="table-wrapper">
             <table class="table">
                 <thead><tr><th>Date</th><th class="text-right">Amount</th><th class="text-right">Principal</th><th class="text-right">Interest</th><th>Mode</th><th>Ref</th></tr></thead>
                 <tbody>
@@ -144,6 +145,7 @@
                     }
                 </tbody>
             </table>
+            </div>
             }
 
             <div class="row" style="justify-content:flex-end;margin-top:12px;gap:8px">

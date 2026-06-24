@@ -104,6 +104,7 @@
     } @else if (activeFines().length > 0) {
     <div class="card">
         <h4 class="card-title">Active Fines</h4>
+        <div class="table-wrapper">
         <table class="table">
             <thead>
                 <tr>
@@ -135,12 +136,14 @@
                 }
             </tbody>
         </table>
+        </div>
     </div>
     }
 
     @if (resolvedFines().length > 0) {
     <div class="card">
         <h4 class="card-title">Resolved Fines</h4>
+        <div class="table-wrapper">
         <table class="table">
             <thead>
                 <tr>
@@ -166,6 +169,7 @@
                 }
             </tbody>
         </table>
+        </div>
     </div>
     }
     }

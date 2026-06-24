@@ -98,6 +98,7 @@
             @if (topDues().length === 0) {
             <p class="muted">🎉 No pending dues — everyone is up to date.</p>
             } @else {
+            <div class="table-wrapper">
             <table class="table">
                 <thead>
                     <tr><th>Priority</th><th>Member</th><th>Months</th><th class="text-right">Due</th><th>Last Paid</th></tr>
@@ -114,6 +115,7 @@
                     }
                 </tbody>
             </table>
+            </div>
             <a class="btn btn-ghost btn-sm mt-2" routerLink="/admin/dues">View full report →</a>
             }
         </div>

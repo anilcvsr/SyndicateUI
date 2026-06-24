@@ -10,8 +10,11 @@
     var(--color-bg);
 }
 .login-card {
-  width: min(420px, 100%);
+  width: min(420px, calc(100vw - 32px));
   padding: 28px;
+}
+@media (max-width: 420px) {
+  .login-card { padding: 20px 16px; }
 }
 .brand {
   display: flex;

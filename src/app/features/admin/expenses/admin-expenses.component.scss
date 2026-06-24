@@ -78,6 +78,19 @@
   gap: 8px;
 }
 
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+
+@media (max-width: 767px) {
+  .modal-backdrop { align-items: flex-end; padding: 0; }
+  .modal {
+    max-width: 100%;
+    width: 100%;
+    border-radius: 12px 12px 0 0;
+    max-height: 90dvh;
+    padding: 16px;
+  }
+}
+
 .pct-bar {
   width: 80px;
   height: 6px;

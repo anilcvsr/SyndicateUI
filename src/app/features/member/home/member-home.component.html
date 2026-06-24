@@ -81,6 +81,7 @@
             <h3 class="card-title" style="margin:0">Fines</h3>
             <span class="badge badge-danger">Total Outstanding: ₹{{ totalFineDue() | number:'1.0-2' }}</span>
         </div>
+        <div class="table-wrapper">
         <table class="table" style="margin-top:12px">
             <thead>
                 <tr><th>Month</th><th class="text-right">Fine Amount</th><th class="text-right">Waived</th><th class="text-right">Outstanding</th><th>Applied</th></tr>
@@ -97,12 +98,14 @@
                 }
             </tbody>
         </table>
+        </div>
         <p class="muted" style="margin-top:8px;font-size:12px">Fines are cleared automatically once all dues older than the grace period are paid in full.</p>
     </section>
     }
 
     <section class="card">
         <h3 class="card-title">Recent Payment History</h3>
+        <div class="table-wrapper">
         <table class="table">
             <thead><tr><th>Month</th><th class="text-right">Expected</th><th class="text-right">Paid</th><th>Date Paid</th><th>Status</th><th>Remarks</th></tr></thead>
             <tbody>
@@ -118,6 +121,7 @@
                 }
             </tbody>
         </table>
+        </div>
     </section>
     }
 </div>

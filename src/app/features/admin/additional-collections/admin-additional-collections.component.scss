@@ -1,1 +1,29 @@
-// Component-specific styles — global admin styles cover layout, cards, tables, modals.
+.cat-chip {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.chip {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 2px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all .15s ease;
+
+  &:hover { background: #f9fafb; }
+
+  &.chip-active {
+    background: #eef2ff;
+    border-color: #6366f1;
+    color: #4338ca;
+    font-weight: 600;
+  }
+}
+
+.btn-xs { padding: 4px 8px; font-size: 14px; margin-left: 2px; }

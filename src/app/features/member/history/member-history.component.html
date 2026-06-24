@@ -12,6 +12,7 @@
     } @else if (error()) {
       <div class="toast toast-error">{{ error() }}</div>
     } @else {
+      <div class="table-wrapper">
       <table class="table">
         <thead><tr><th>Month</th><th class="text-right">Expected</th><th class="text-right">Paid</th><th>Date Paid</th><th>Status</th><th>Remarks</th></tr></thead>
         <tbody>
@@ -27,6 +28,7 @@
           }
         </tbody>
       </table>
+      </div>
     }
   </div>
 
@@ -37,6 +39,7 @@
     } @else if (fines().length === 0) {
       <p class="muted">No fine history found.</p>
     } @else {
+      <div class="table-wrapper">
       <table class="table">
         <thead>
           <tr>
@@ -59,6 +62,7 @@
           }
         </tbody>
       </table>
+      </div>
     }
   </div>
 </div>

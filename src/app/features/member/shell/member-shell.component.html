@@ -4,6 +4,8 @@
       <div class="brand-mark">S</div>
       <strong>Syndicate</strong>
     </div>
+
+    <!-- Desktop nav -->
     <nav class="topnav">
       @for (item of nav(); track item.path) {
         <a [routerLink]="item.path" routerLinkActive="active" class="nav-link">
@@ -11,11 +13,33 @@
         </a>
       }
     </nav>
+
     <div class="user">
-      <span class="muted">{{ auth.memberCode() }}</span>
+      <span class="muted user-code">{{ auth.memberCode() }}</span>
       <button class="btn btn-ghost btn-sm" (click)="logout()">Logout</button>
     </div>
+
+    <!-- Hamburger (mobile only) -->
+    <button class="hamburger" (click)="toggleNav()" [attr.aria-expanded]="mobileNavOpen()" aria-label="Toggle navigation">
+      <span></span><span></span><span></span>
+    </button>
   </header>
+
+  <!-- Mobile nav drawer -->
+  @if (mobileNavOpen()) {
+    <nav class="mobile-nav">
+      @for (item of nav(); track item.path) {
+        <a [routerLink]="item.path" routerLinkActive="active" class="nav-link">
+          <span>{{ item.icon }}</span> {{ item.label }}
+        </a>
+      }
+      <div class="mobile-nav-footer">
+        <span class="muted">{{ auth.memberCode() }}</span>
+        <button class="btn btn-ghost btn-sm" (click)="logout()">Logout</button>
+      </div>
+    </nav>
+  }
+
   <main class="content">
     <router-outlet />
   </main>

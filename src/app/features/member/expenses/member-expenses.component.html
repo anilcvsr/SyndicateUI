@@ -61,6 +61,7 @@
         @if (r.items.length === 0) {
         <p class="muted">No expenses recorded for these filters.</p>
         } @else {
+        <div class="table-wrapper">
         <table class="table">
             <thead>
                 <tr>
@@ -87,6 +88,7 @@
                 }
             </tbody>
         </table>
+        </div>
 
         <div class="row" style="justify-content:space-between;margin-top:12px">
             <span class="muted">Showing {{ r.items.length }} of {{ r.totalCount }} — page {{ r.page }} of {{ totalPages() }}</span>

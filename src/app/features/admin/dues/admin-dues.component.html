@@ -61,6 +61,7 @@
         <strong>Filtered Total: {{ visibleTotal() | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong>
       </div>
       <div style="overflow-x:auto">
+        <div class="table-wrapper">
         <table class="table">
           <thead>
             <tr>
@@ -94,6 +95,7 @@
             }
           </tbody>
         </table>
+        </div>
       </div>
     }
   </div>
@@ -137,6 +139,7 @@
           </div>
 
           <div style="overflow-x:auto">
+            <div class="table-wrapper">
             <table class="table due-table">
               <thead>
                 <tr><th>Description</th><th class="text-right">Amount</th></tr>
@@ -178,6 +181,7 @@
                 </tr>
               </tbody>
             </table>
+            </div>
           </div>
 
           <div class="due-summary">

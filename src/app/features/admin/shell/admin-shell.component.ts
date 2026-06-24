@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { filter, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-admin-shell',
@@ -10,8 +11,13 @@ import { AuthService } from '../../../core/services/auth.service';
   templateUrl: './admin-shell.component.html',
   styleUrl: './admin-shell.component.scss'
 })
-export class AdminShellComponent {
+export class AdminShellComponent implements OnInit, OnDestroy {
   auth = inject(AuthService);
+  private router = inject(Router);
+  private routerSub?: Subscription;
+
+  menuOpen = signal(false);
+
   nav = [
     { path: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
     { path: '/admin/members', label: 'Members', icon: '👥' },
@@ -29,5 +35,17 @@ export class AdminShellComponent {
     { path: '/admin/settings', label: 'Settings', icon: '⚙️' }
   ];
 
+  ngOnInit() {
+    this.routerSub = this.router.events
+      .pipe(filter(e => e instanceof NavigationEnd))
+      .subscribe(() => this.menuOpen.set(false));
+  }
+
+  ngOnDestroy() {
+    this.routerSub?.unsubscribe();
+  }
+
+  toggleMenu() { this.menuOpen.update(v => !v); }
+  closeMenu() { this.menuOpen.set(false); }
   logout() { this.auth.logout(); }
 }

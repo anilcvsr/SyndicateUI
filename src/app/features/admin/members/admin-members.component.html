@@ -21,6 +21,7 @@
     } @else if (members().length === 0) {
       <p class="muted">No members yet. Click "Add Member" to get started.</p>
     } @else {
+      <div class="table-wrapper">
       <table class="table">
         <thead>
           <tr><th>Member ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Joined</th><th>Status</th><th></th></tr>
@@ -48,6 +49,7 @@
           }
         </tbody>
       </table>
+      </div>
     }
   </div>
 

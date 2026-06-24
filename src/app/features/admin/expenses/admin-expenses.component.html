@@ -81,6 +81,7 @@
       @if (r.items.length === 0) {
         <p class="muted">No expenses recorded for these filters. Click "+ Add Expense" to get started.</p>
       } @else {
+        <div class="table-wrapper">
         <table class="table">
           <thead>
             <tr>
@@ -115,6 +116,7 @@
             }
           </tbody>
         </table>
+        </div>
 
         <div class="row" style="justify-content:space-between;margin-top:12px">
           <span class="muted">Showing {{ r.items.length }} of {{ r.totalCount }} — page {{ r.page }} of {{ totalPages() }}</span>
@@ -178,6 +180,7 @@
         } @else if (history().length === 0) {
           <p class="muted">No history entries.</p>
         } @else {
+          <div class="table-wrapper">
           <table class="table">
             <thead><tr><th>When</th><th>Action</th><th>Details</th></tr></thead>
             <tbody>
@@ -190,6 +193,7 @@
               }
             </tbody>
           </table>
+          </div>
         }
         <div class="row" style="justify-content:flex-end">
           <button type="button" class="btn btn-ghost" (click)="closeHistory()">Close</button>

@@ -106,6 +106,7 @@
 
     @if (existingPayments().length > 0) {
       <div class="table-wrap">
+        <div class="table-wrapper">
         <table class="data-table">
           <thead>
             <tr>
@@ -138,6 +139,7 @@
             }
           </tbody>
         </table>
+        </div>
       </div>
     } @else if (editFilterMemberId() && !loadingExisting()) {
       <p class="muted">No payments recorded for this member yet.</p>

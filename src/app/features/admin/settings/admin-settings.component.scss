@@ -2,3 +2,8 @@
 .page-title { font-size: 22px; font-weight: 700; margin: 0; }
 .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
 .row-highlight { background: rgba(34, 197, 94, 0.08); }
+
+@media (max-width: 767px) {
+  .page-header { flex-direction: column; align-items: stretch; }
+  .grid-2 { grid-template-columns: 1fr; }
+}
