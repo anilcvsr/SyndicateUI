@@ -75,6 +75,11 @@ export const routes: Routes = [
           import('./features/admin/fines/admin-fines.component').then((m) => m.AdminFinesComponent)
       },
       {
+        path: 'additional-collections',
+        loadComponent: () =>
+          import('./features/admin/additional-collections/admin-additional-collections.component').then((m) => m.AdminAdditionalCollectionsComponent)
+      },
+      {
         path: 'settings',
         loadComponent: () =>
           import('./features/admin/settings/admin-settings.component').then((m) => m.AdminSettingsComponent)
@@ -112,6 +117,11 @@ export const routes: Routes = [
         path: 'loans',
         loadComponent: () =>
           import('./features/member/loans/member-loans.component').then((m) => m.MemberLoansComponent)
+      },
+      {
+        path: 'group-financial',
+        loadComponent: () =>
+          import('./features/member/group-financial/member-group-financial.component').then((m) => m.MemberGroupFinancialComponent)
       }
     ]
   },

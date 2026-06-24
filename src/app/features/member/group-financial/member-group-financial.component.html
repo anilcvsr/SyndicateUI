@@ -1,0 +1,98 @@
+<div class="stack">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Group Financial Details</h1>
+      <p class="muted">Read-only view of all members' financial obligations.</p>
+    </div>
+  </header>
+
+  @if (loading()) {
+  <section class="card">
+    <p class="muted">Loading group financial details…</p>
+  </section>
+  } @else if (error()) {
+  <div class="toast toast-error">{{ error() }}</div>
+  } @else if (data(); as d) {
+
+  <div class="last-updated muted">Last updated: {{ d.lastUpdated | date:'dd MMM yyyy, HH:mm' }}</div>
+
+  <section class="card table-card">
+    <div class="table-scroll">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Member</th>
+            <th class="text-right">Loan Outstanding</th>
+            <th class="text-right">Loan Interest Due</th>
+            <th class="text-right">Pending Contributions</th>
+            <th class="text-right">Fine Amount</th>
+            <th class="text-right">Total Outstanding</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of d.members; track m.memberId; let i = $index) {
+          <tr>
+            <td class="muted">{{ (d.page - 1) * d.pageSize + i + 1 }}</td>
+            <td>
+              <strong>{{ m.fullName }}</strong>
+              <span class="muted member-code"> {{ m.memberCode }}</span>
+            </td>
+            <td class="text-right">{{ m.loanOutstanding | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+            <td class="text-right">{{ m.loanInterestDue | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+            <td class="text-right">{{ m.pendingMonthlyContribution | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+            <td class="text-right">{{ m.fineAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+            <td class="text-right" [class.outstanding-due]="hasOutstanding(m.totalOutstanding)">
+              <strong>{{ m.totalOutstanding | currency:'INR':'symbol':'1.2-2':'en-IN' }}</strong>
+            </td>
+          </tr>
+          }
+
+          @if (d.members.length === 0) {
+          <tr>
+            <td colspan="7" class="muted" style="text-align:center;padding:24px">No members found.</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="row" style="justify-content:space-between;margin-top:12px;align-items:center">
+      <span class="muted">
+        Showing {{ d.members.length }} of {{ d.totalMembers }} members — page {{ d.page }} of {{ totalPages() }}
+      </span>
+      <div class="row" style="gap:6px">
+        <button class="btn btn-ghost btn-sm" (click)="goToPage(d.page - 1)" [disabled]="d.page <= 1">← Prev</button>
+        <button class="btn btn-ghost btn-sm" (click)="goToPage(d.page + 1)" [disabled]="d.page >= totalPages()">Next →</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card summary-card">
+    <h3 class="card-title">Group Summary</h3>
+    <div class="summary-grid">
+      <div class="summary-item">
+        <span class="muted">Total Loan Outstanding</span>
+        <strong>{{ d.groupSummary.totalLoanAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}</strong>
+      </div>
+      <div class="summary-item">
+        <span class="muted">Total Loan Interest</span>
+        <strong>{{ d.groupSummary.totalLoanInterest | currency:'INR':'symbol':'1.2-2':'en-IN' }}</strong>
+      </div>
+      <div class="summary-item">
+        <span class="muted">Total Pending Contributions</span>
+        <strong>{{ d.groupSummary.totalPendingContributions | currency:'INR':'symbol':'1.2-2':'en-IN' }}</strong>
+      </div>
+      <div class="summary-item">
+        <span class="muted">Total Fine Amount</span>
+        <strong>{{ d.groupSummary.totalFineAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}</strong>
+      </div>
+      <div class="summary-item summary-total">
+        <span class="muted">Overall Group Outstanding</span>
+        <strong class="outstanding-due">{{ d.groupSummary.overallOutstanding | currency:'INR':'symbol':'1.2-2':'en-IN' }}</strong>
+      </div>
+    </div>
+  </section>
+
+  }
+</div>

@@ -1,0 +1,305 @@
+<div class="stack">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Additional Collections</h1>
+      <p class="muted">Record non-standard income such as joining fees, donations, sponsorships and adjustments. All amounts are included in group fund totals.</p>
+    </div>
+    <div class="row">
+      <button class="btn btn-ghost" (click)="openCategoryPanel()">🏷️ Categories</button>
+      <button class="btn btn-primary" (click)="openAdd()">+ Add Entry</button>
+    </div>
+  </header>
+
+  <section class="card">
+    <h3 class="card-title">Filters</h3>
+    <form [formGroup]="filter" (ngSubmit)="applyFilters()" class="stack">
+      <div class="grid-2">
+        <div class="field">
+          <label class="label">From</label>
+          <input class="input" type="date" formControlName="from" />
+        </div>
+        <div class="field">
+          <label class="label">To</label>
+          <input class="input" type="date" formControlName="to" />
+        </div>
+        <div class="field" style="grid-column: 1 / -1">
+          <label class="label">Search Description / Reference</label>
+          <input class="input" type="text" formControlName="q" placeholder="Keyword..." />
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">Categories</label>
+        <div class="row-wrap">
+          @for (c of activeCategories(); track c.categoryId) {
+            <button type="button"
+                    class="chip"
+                    [class.chip-active]="isCategoryFilterSelected(c.categoryId)"
+                    [style.borderColor]="categoryColor(c.categoryId)"
+                    (click)="toggleCategoryFilter(c.categoryId)">
+              {{ c.name }}
+            </button>
+          }
+          @if (activeCategories().length === 0) {
+            <span class="muted">No categories available.</span>
+          }
+        </div>
+      </div>
+      <div class="row" style="justify-content:flex-end;gap:8px">
+        <button type="button" class="btn btn-ghost btn-sm" (click)="resetFilters()">Reset</button>
+        <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card">
+    @if (loading()) {
+      <p class="muted">Loading entries…</p>
+    } @else if (error()) {
+      <div class="toast toast-error">{{ error() }}</div>
+    } @else if (result(); as r) {
+      @if (r.items.length === 0) {
+        <p class="muted">No entries found for the selected filters. Click "+ Add Entry" to record income.</p>
+      } @else {
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Category</th>
+              <th>Member</th>
+              <th>Description</th>
+              <th>Reference</th>
+              <th class="text-right">Amount</th>
+              <th>Created By</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of r.items; track e.collectionId) {
+              <tr>
+                <td>{{ e.collectionDate | date:'dd MMM yyyy' }}</td>
+                <td>
+                  <span class="cat-chip"
+                        [style.backgroundColor]="categoryColor(e.categoryId) + '22'"
+                        [style.color]="categoryColor(e.categoryId)">
+                    {{ e.categoryName }}
+                  </span>
+                </td>
+                <td>{{ e.memberName || '—' }}</td>
+                <td>{{ e.description || '—' }}</td>
+                <td class="muted">{{ e.referenceNumber || '—' }}</td>
+                <td class="text-right"><strong>{{ e.amount | currency:'INR':'symbol':'1.0-2':'en-IN' }}</strong></td>
+                <td class="muted">{{ e.createdByName || '—' }}</td>
+                <td class="text-right">
+                  <button class="btn btn-ghost btn-xs" (click)="openEdit(e)" title="Edit">✏️</button>
+                  <button class="btn btn-ghost btn-xs" (click)="openHistory(e)" title="History">🕓</button>
+                  <button class="btn btn-ghost btn-xs" (click)="confirmDelete(e)" title="Delete">🗑️</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <div class="row" style="justify-content:space-between;margin-top:12px;align-items:center">
+          <span class="muted">
+            Showing {{ r.items.length }} of {{ r.totalCount }} — page {{ r.page }} of {{ totalPages() }}
+          </span>
+          <div class="row" style="gap:6px">
+            <button class="btn btn-ghost btn-sm" (click)="goToPage(r.page - 1)" [disabled]="r.page <= 1">← Prev</button>
+            <button class="btn btn-ghost btn-sm" (click)="goToPage(r.page + 1)" [disabled]="r.page >= totalPages()">Next →</button>
+          </div>
+        </div>
+      }
+    }
+  </section>
+
+  <!-- Add / Edit Modal -->
+  @if (showForm()) {
+    <div class="modal-backdrop" (click)="cancelForm()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h3 class="card-title">{{ editing() ? 'Edit Entry' : 'Add Additional Collection' }}</h3>
+        <form [formGroup]="form" (ngSubmit)="saveForm()" class="stack">
+          <div class="grid-2">
+            <div class="field">
+              <label class="label">Collection Date *</label>
+              <input class="input" type="date" formControlName="collectionDate" [max]="today" />
+            </div>
+            <div class="field">
+              <label class="label">Category *</label>
+              <select class="input" formControlName="categoryId">
+                <option [ngValue]="null" disabled>Select category…</option>
+                @for (c of activeCategories(); track c.categoryId) {
+                  <option [ngValue]="c.categoryId">{{ c.name }}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label class="label">Amount (₹) *</label>
+              <input class="input" type="number" formControlName="amount" min="0.01" step="0.01" />
+            </div>
+            <div class="field">
+              <label class="label">Reference Number</label>
+              <input class="input" type="text" formControlName="referenceNumber" placeholder="Cheque no., transaction ID…" maxlength="100" />
+            </div>
+            <div class="field">
+              <label class="label">Member (optional)</label>
+              <select class="input" formControlName="memberId">
+                <option [ngValue]="null">— None —</option>
+                @for (m of members(); track m.memberId) {
+                  <option [ngValue]="m.memberId">{{ m.fullName }} ({{ m.memberCode }})</option>
+                }
+              </select>
+            </div>
+            <div class="field"></div>
+            <div class="field" style="grid-column: 1 / -1">
+              <label class="label">Description / Remarks</label>
+              <textarea class="input" rows="3" formControlName="description" maxlength="500" placeholder="Optional notes…"></textarea>
+            </div>
+          </div>
+          @if (formError()) { <div class="toast toast-error">{{ formError() }}</div> }
+          <div class="row" style="justify-content:flex-end;gap:8px">
+            <button type="button" class="btn btn-ghost" (click)="cancelForm()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="saving()">
+              {{ saving() ? 'Saving…' : (editing() ? 'Update' : 'Save') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- History Modal -->
+  @if (historyFor(); as hf) {
+    <div class="modal-backdrop" (click)="closeHistory()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h3 class="card-title">History — {{ hf.categoryName }} ({{ hf.amount | currency:'INR':'symbol':'1.0-0':'en-IN' }})</h3>
+        <p class="muted">{{ hf.description || 'No description' }}</p>
+        @if (historyLoading()) {
+          <p class="muted">Loading…</p>
+        } @else if (history().length === 0) {
+          <p class="muted">No history entries.</p>
+        } @else {
+          <table class="table">
+            <thead><tr><th>When</th><th>Action</th><th>Details</th></tr></thead>
+            <tbody>
+              @for (h of history(); track h.auditLogId) {
+                <tr>
+                  <td>{{ h.createdAt | date:'dd MMM yyyy HH:mm' }}</td>
+                  <td><span class="badge badge-neutral">{{ h.action }}</span></td>
+                  <td class="muted" style="font-family:monospace;font-size:12px;white-space:pre-wrap">{{ h.details || '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+        <div class="row" style="justify-content:flex-end">
+          <button type="button" class="btn btn-ghost" (click)="closeHistory()">Close</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Delete Confirm Modal -->
+  @if (deleting(); as d) {
+    <div class="modal-backdrop" (click)="cancelDelete()">
+      <div class="modal" (click)="$event.stopPropagation()" style="max-width:480px">
+        <h3 class="card-title">Delete Entry?</h3>
+        <p>
+          This will remove <strong>{{ d.amount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong>
+          from group funds. The entry will be retained in audit history.
+          <br /><strong>{{ d.categoryName }}</strong> on {{ d.collectionDate | date:'dd MMM yyyy' }}
+        </p>
+        <div class="row" style="justify-content:flex-end;gap:8px;margin-top:16px">
+          <button type="button" class="btn btn-ghost" (click)="cancelDelete()">Cancel</button>
+          <button type="button" class="btn btn-danger" (click)="performDelete()">Delete</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Category Management Modal -->
+  @if (showCategoryPanel()) {
+    <div class="modal-backdrop" (click)="closeCategoryPanel()">
+      <div class="modal" (click)="$event.stopPropagation()" style="max-width:620px">
+        <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:16px">
+          <h3 class="card-title" style="margin:0">Manage Categories</h3>
+          <button type="button" class="btn btn-ghost btn-sm" (click)="closeCategoryPanel()">✕ Close</button>
+        </div>
+
+        <form [formGroup]="addCatForm" (ngSubmit)="addCategory()" class="row" style="gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px">
+          <div class="field" style="flex:1;min-width:240px">
+            <label class="label">New Category Name *</label>
+            <input class="input" formControlName="name" maxlength="100" placeholder="e.g. Annual Fee" />
+          </div>
+          <button type="submit" class="btn btn-primary" [disabled]="catSaving()">+ Add</button>
+        </form>
+
+        @if (catSuccess()) { <div class="toast toast-success" style="margin-bottom:8px">{{ catSuccess() }}</div> }
+        @if (catError()) { <div class="toast toast-error" style="margin-bottom:8px">{{ catError() }}</div> }
+
+        @if (catLoading()) {
+          <p class="muted">Loading…</p>
+        } @else {
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th class="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (c of allCategories(); track c.categoryId) {
+                <tr>
+                  <td><strong>{{ c.name }}</strong></td>
+                  <td>
+                    @if (c.isSystem) {
+                      <span class="badge badge-neutral">🔒 System</span>
+                    } @else {
+                      <span class="badge badge-success">👤 Custom</span>
+                    }
+                  </td>
+                  <td>
+                    @if (c.isActive) {
+                      <span class="badge badge-success">Active</span>
+                    } @else {
+                      <span class="badge badge-danger">Inactive</span>
+                    }
+                  </td>
+                  <td class="text-right">
+                    <button class="btn btn-ghost btn-sm" (click)="openEditCat(c)">Edit</button>
+                    <button class="btn btn-ghost btn-sm" (click)="toggleCatActive(c)" [disabled]="catSaving()">
+                      {{ c.isActive ? 'Deactivate' : 'Activate' }}
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+
+        @if (editingCat(); as ec) {
+          <div style="border-top:1px solid var(--border,#e5e7eb);margin-top:16px;padding-top:16px">
+            <h4 style="margin:0 0 12px">Edit: {{ ec.name }}</h4>
+            <form [formGroup]="editCatForm" (ngSubmit)="saveEditCat()" class="stack">
+              <div class="field">
+                <label class="label">Name *</label>
+                <input class="input" formControlName="name" maxlength="100" />
+              </div>
+              <div class="field">
+                <label class="row" style="gap:8px;align-items:center;cursor:pointer">
+                  <input type="checkbox" formControlName="isActive" />
+                  <span>Active — shown in entry dropdown</span>
+                </label>
+              </div>
+              <div class="row" style="justify-content:flex-end;gap:8px">
+                <button type="button" class="btn btn-ghost btn-sm" (click)="cancelEditCat()">Cancel</button>
+                <button type="submit" class="btn btn-primary btn-sm" [disabled]="catSaving()">Save</button>
+              </div>
+            </form>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

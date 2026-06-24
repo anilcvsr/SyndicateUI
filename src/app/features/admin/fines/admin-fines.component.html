@@ -11,121 +11,164 @@
         </div>
     </header>
 
+    @if (summary(); as s) {
+    <div class="card">
+        <h3 class="card-title" style="margin-bottom:12px">Fines Summary</h3>
+        <div class="row" style="gap:24px;flex-wrap:wrap">
+            <div>
+                <p class="muted" style="margin:0;font-size:12px">Total Expected</p>
+                <p style="margin:0;font-size:20px;font-weight:600">₹{{ s.totalExpected | number:'1.0-2' }}</p>
+            </div>
+            <div>
+                <p class="muted" style="margin:0;font-size:12px">Total Collected</p>
+                <p style="margin:0;font-size:20px;font-weight:600;color:#22c55e">₹{{ s.totalCollected | number:'1.0-2' }}</p>
+            </div>
+            <div>
+                <p class="muted" style="margin:0;font-size:12px">Total Pending</p>
+                <p style="margin:0;font-size:20px;font-weight:600;color:#ef4444">₹{{ s.totalPending | number:'1.0-2' }}</p>
+            </div>
+        </div>
+    </div>
+    }
+
     @if (error()) { <div class="toast toast-error">{{ error() }}</div> }
     @if (success()) { <div class="toast toast-success">{{ success() }}</div> }
 
-    <div class="two-col">
-        <div class="card" style="max-height:600px;overflow-y:auto">
-            <h3 class="card-title">Select Member</h3>
-            @if (members().length === 0) {
-            <p class="muted">No members found.</p>
+    <!-- Member searchable dropdown -->
+    <div class="card" style="position:relative">
+        <h3 class="card-title">Select Member</h3>
+        <div style="position:relative">
+            <input
+                class="input"
+                type="text"
+                placeholder="Search by name or code..."
+                [value]="memberSearch()"
+                (input)="onSearchInput($any($event.target).value)"
+                (focus)="onSearchFocus()"
+                (blur)="onSearchBlur()"
+                style="width:100%;padding-right:32px" />
+            @if (selectedMemberId()) {
+            <button
+                type="button"
+                (click)="clearSelection()"
+                style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;font-size:16px">
+                ✕
+            </button>
             }
-            @for (m of members(); track m.memberId) {
-            <div class="member-row"
-                 [class.selected]="selectedMemberId() === m.memberId"
-                 (click)="selectMember(m.memberId)"
-                 style="padding:8px;cursor:pointer;border-radius:4px;margin-bottom:4px">
+        </div>
+        @if (dropdownOpen() && filteredMembers().length > 0) {
+        <div style="position:absolute;left:16px;right:16px;top:calc(100% - 8px);z-index:100;background:var(--surface,#fff);border:1px solid var(--border,#e5e7eb);border-radius:6px;max-height:240px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1)">
+            @for (m of filteredMembers(); track m.memberId) {
+            <div
+                class="member-row"
+                [class.selected]="selectedMemberId() === m.memberId"
+                (mousedown)="selectMember(m.memberId)"
+                style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:8px">
                 <span><strong>{{ m.memberCode }}</strong> — {{ m.fullName }}</span>
-                @if (!m.isActive) { <span class="badge badge-neutral" style="margin-left:6px">Inactive</span> }
+                @if (!m.isActive) { <span class="badge badge-neutral" style="margin-left:auto">Inactive</span> }
             </div>
             }
         </div>
+        }
+        @if (dropdownOpen() && filteredMembers().length === 0) {
+        <div style="position:absolute;left:16px;right:16px;top:calc(100% - 8px);z-index:100;background:var(--surface,#fff);border:1px solid var(--border,#e5e7eb);border-radius:6px;padding:12px 14px;box-shadow:0 4px 12px rgba(0,0,0,.1)">
+            <p class="muted" style="margin:0">No members match your search.</p>
+        </div>
+        }
+    </div>
 
-        <div class="stack">
-            @if (!selectedMemberId()) {
-            <div class="card"><p class="muted">Select a member to view their fines.</p></div>
-            } @else {
-            <div class="card">
-                <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-                    <div>
-                        <h3 class="card-title" style="margin:0">{{ selectedMemberName() }}</h3>
-                        @if (activeFines().length > 0) {
-                        <p class="muted" style="margin:4px 0 0">
-                            {{ activeFines().length }} active fine(s) · Outstanding:
-                            <strong style="color:#ef4444">₹{{ totalActiveFineAmount() | number:'1.0-2' }}</strong>
-                        </p>
-                        } @else {
-                        <p class="muted" style="margin:4px 0 0">No active fines.</p>
-                        }
-                    </div>
-                    <button class="btn btn-ghost btn-sm" (click)="evaluate()" [disabled]="evaluating() || loading()">
-                        {{ evaluating() ? 'Evaluating...' : 'Re-evaluate' }}
-                    </button>
-                </div>
+    @if (!selectedMemberId()) {
+    <div class="card"><p class="muted">Select a member to view their fine details.</p></div>
+    } @else {
+    <div class="card">
+        <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+            <div>
+                <h3 class="card-title" style="margin:0">{{ selectedMemberName() }}</h3>
+                @if (activeFines().length > 0) {
+                <p class="muted" style="margin:4px 0 0">
+                    {{ activeFines().length }} active fine(s) · Outstanding:
+                    <strong style="color:#ef4444">₹{{ totalActiveFineAmount() | number:'1.0-2' }}</strong>
+                </p>
+                } @else {
+                <p class="muted" style="margin:4px 0 0">No active fines.</p>
+                }
             </div>
-
-            @if (loading()) {
-            <div class="card"><p class="muted">Loading fines...</p></div>
-            } @else if (activeFines().length > 0) {
-            <div class="card">
-                <h4 class="card-title">Active Fines</h4>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Month</th>
-                            <th>Fine Amount</th>
-                            <th>Waived</th>
-                            <th>Paid</th>
-                            <th>Outstanding</th>
-                            <th>Status</th>
-                            <th>Applied</th>
-                            <th class="text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @for (f of activeFines(); track f.fineId) {
-                        <tr>
-                            <td>{{ f.monthReference | date:'MMM yyyy' }}</td>
-                            <td>₹{{ f.fineAmount | number:'1.0-2' }}</td>
-                            <td>{{ f.waivedAmount > 0 ? ('₹' + (f.waivedAmount | number:'1.0-2')) : '—' }}</td>
-                            <td>{{ f.amountPaidSoFar > 0 ? ('₹' + (f.amountPaidSoFar | number:'1.0-2')) : '—' }}</td>
-                            <td><strong>₹{{ fineBalance(f) | number:'1.0-2' }}</strong></td>
-                            <td><span class="badge" [class]="statusBadge(f.status)">{{ f.status }}</span></td>
-                            <td class="muted">{{ f.appliedAt | date:'dd MMM yyyy' }}</td>
-                            <td class="text-right" style="display:flex;gap:4px;justify-content:flex-end">
-                                <button class="btn btn-ghost btn-sm" (click)="openPayment(f)">Record Payment</button>
-                                <button class="btn btn-ghost btn-sm" (click)="openWaive(f)">Waive</button>
-                            </td>
-                        </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-            }
-
-            @if (resolvedFines().length > 0) {
-            <div class="card">
-                <h4 class="card-title">Resolved Fines</h4>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Month</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th>Note / Reason</th>
-                            <th>Resolved</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @for (f of resolvedFines(); track f.fineId) {
-                        <tr>
-                            <td>{{ f.monthReference | date:'MMM yyyy' }}</td>
-                            <td>₹{{ f.fineAmount | number:'1.0-2' }}</td>
-                            <td><span class="badge" [class]="statusBadge(f.status)">{{ f.status }}</span></td>
-                            <td class="muted">
-                                @if (f.status === 'Paid') { Payment collected }
-                                @else { {{ f.waiveReason || '—' }} }
-                            </td>
-                            <td class="muted">{{ (f.paidAt ?? f.waivedAt) | date:'dd MMM yyyy' }}</td>
-                        </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-            }
-            }
+            <button class="btn btn-ghost btn-sm" (click)="evaluate()" [disabled]="evaluating() || loading()">
+                {{ evaluating() ? 'Evaluating...' : 'Re-evaluate' }}
+            </button>
         </div>
     </div>
+
+    @if (loading()) {
+    <div class="card"><p class="muted">Loading fines...</p></div>
+    } @else if (activeFines().length > 0) {
+    <div class="card">
+        <h4 class="card-title">Active Fines</h4>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Fine Amount</th>
+                    <th>Waived</th>
+                    <th>Paid</th>
+                    <th>Outstanding</th>
+                    <th>Status</th>
+                    <th>Applied</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (f of activeFines(); track f.fineId) {
+                <tr>
+                    <td>{{ f.monthReference | date:'MMM yyyy' }}</td>
+                    <td>₹{{ f.fineAmount | number:'1.0-2' }}</td>
+                    <td>{{ f.waivedAmount > 0 ? ('₹' + (f.waivedAmount | number:'1.0-2')) : '—' }}</td>
+                    <td>{{ f.amountPaidSoFar > 0 ? ('₹' + (f.amountPaidSoFar | number:'1.0-2')) : '—' }}</td>
+                    <td><strong>₹{{ fineBalance(f) | number:'1.0-2' }}</strong></td>
+                    <td><span class="badge" [class]="statusBadge(f.status)">{{ f.status }}</span></td>
+                    <td class="muted">{{ f.appliedAt | date:'dd MMM yyyy' }}</td>
+                    <td class="text-right" style="display:flex;gap:4px;justify-content:flex-end">
+                        <button class="btn btn-ghost btn-sm" (click)="openPayment(f)">Record Payment</button>
+                        <button class="btn btn-ghost btn-sm" (click)="openWaive(f)">Waive</button>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    }
+
+    @if (resolvedFines().length > 0) {
+    <div class="card">
+        <h4 class="card-title">Resolved Fines</h4>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Note / Reason</th>
+                    <th>Resolved</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (f of resolvedFines(); track f.fineId) {
+                <tr>
+                    <td>{{ f.monthReference | date:'MMM yyyy' }}</td>
+                    <td>₹{{ f.fineAmount | number:'1.0-2' }}</td>
+                    <td><span class="badge" [class]="statusBadge(f.status)">{{ f.status }}</span></td>
+                    <td class="muted">
+                        @if (f.status === 'Paid') { Payment collected }
+                        @else { {{ f.waiveReason || '—' }} }
+                    </td>
+                    <td class="muted">{{ (f.paidAt ?? f.waivedAt) | date:'dd MMM yyyy' }}</td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    }
+    }
 </div>
 
 @if (payingFine(); as fine) {

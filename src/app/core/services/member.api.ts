@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import {
+  GroupFinancialDetailsDto,
   MemberFineViewDto,
   MemberHomeSummaryDto,
   MemberPaymentHistoryItemDto,
@@ -104,5 +105,13 @@ export class MemberApi {
   }
   markNotificationRead(notificationId: number) {
     return this.http.put<void>(`${this.base}/fines/notifications/${notificationId}/read`, {});
+  }
+
+  // ----- Group Financial Details (read-only) -----
+  groupFinancialDetails(page = 1, pageSize = 10) {
+    return this.http.get<GroupFinancialDetailsDto>(
+      `${this.base}/group-financial-details`,
+      { params: { page: String(page), pageSize: String(pageSize) } }
+    );
   }
 }

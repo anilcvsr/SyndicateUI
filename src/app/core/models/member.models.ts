@@ -54,6 +54,7 @@ export interface MemberFineViewDto {
   status: string;
   waivedAmount: number;
   appliedAt: string;
+  paidAt: string | null;
 }
 
 export interface NotificationDto {
@@ -61,4 +62,33 @@ export interface NotificationDto {
   message: string;
   isRead: boolean;
   createdAt: string;
+}
+
+export interface GroupFinancialMemberRowDto {
+  memberId: number;
+  memberCode: string;
+  fullName: string;
+  loanOutstanding: number;
+  loanInterestDue: number;
+  pendingMonthlyContribution: number;
+  fineAmount: number;
+  totalOutstanding: number;
+}
+
+export interface GroupFinancialSummaryDto {
+  totalLoanAmount: number;
+  totalLoanInterest: number;
+  totalPendingContributions: number;
+  totalFineAmount: number;
+  overallOutstanding: number;
+}
+
+export interface GroupFinancialDetailsDto {
+  lastUpdated: string;
+  page: number;
+  pageSize: number;
+  totalMembers: number;
+  totalPages: number;
+  members: GroupFinancialMemberRowDto[];
+  groupSummary: GroupFinancialSummaryDto;
 }

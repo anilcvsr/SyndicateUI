@@ -7,8 +7,10 @@ import {
   CreateMemberPayload,
   CreateYearlyContributionPayload,
   DashboardSummaryDto,
+  FineSummaryDto,
   FineSettingsDto,
   MemberDto,
+  MemberDueSummaryDto,
   MemberFineDto,
   MemberFineOverridePayload,
   MonthlyCollectionDto,
@@ -19,6 +21,8 @@ import {
   ProofVerificationDto,
   RecordFinePaymentPayload,
   RecordPaymentPayload,
+  SendReminderPayload,
+  SendReminderResultDto,
   UpdateAppSettingsPayload,
   UpdateFineSettingsPayload,
   UpdateMemberPayload,
@@ -40,6 +44,17 @@ import {
   UpdateExpenseCategoryPayload,
   UpdateExpensePayload
 } from '../models/expense.models';
+import {
+  AdditionalCollectionAuditEntryDto,
+  AdditionalCollectionCategoryDto,
+  AdditionalCollectionDto,
+  AdditionalCollectionFilterQuery,
+  AdditionalCollectionListResultDto,
+  CreateAdditionalCollectionCategoryPayload,
+  CreateAdditionalCollectionPayload,
+  UpdateAdditionalCollectionCategoryPayload,
+  UpdateAdditionalCollectionPayload
+} from '../models/additional-collection.models';
 import {
   CreateLoanPayload,
   CreateLoanRepaymentPayload,
@@ -263,7 +278,56 @@ export class AdminApi {
     );
   }
 
+  // ----- Additional Collections -----
+  listAdditionalCollectionCategories(includeInactive = false) {
+    const params = new HttpParams().set('includeInactive', String(includeInactive));
+    return this.http.get<AdditionalCollectionCategoryDto[]>(`${this.base}/additional-collections/categories`, { params });
+  }
+  createAdditionalCollectionCategory(payload: CreateAdditionalCollectionCategoryPayload) {
+    return this.http.post<AdditionalCollectionCategoryDto>(`${this.base}/additional-collections/categories`, payload);
+  }
+  updateAdditionalCollectionCategory(id: number, payload: UpdateAdditionalCollectionCategoryPayload) {
+    return this.http.put<AdditionalCollectionCategoryDto>(`${this.base}/additional-collections/categories/${id}`, payload);
+  }
+  listAdditionalCollections(query: AdditionalCollectionFilterQuery = {}) {
+    let params = new HttpParams();
+    if (query.from) params = params.set('from', query.from);
+    if (query.to) params = params.set('to', query.to);
+    if (query.categoryIds && query.categoryIds.length) params = params.set('categoryIds', query.categoryIds.join(','));
+    if (query.memberId != null) params = params.set('memberId', String(query.memberId));
+    if (query.q) params = params.set('q', query.q);
+    if (query.page) params = params.set('page', String(query.page));
+    if (query.pageSize) params = params.set('pageSize', String(query.pageSize));
+    return this.http.get<AdditionalCollectionListResultDto>(`${this.base}/additional-collections`, { params });
+  }
+  getAdditionalCollection(id: number) {
+    return this.http.get<AdditionalCollectionDto>(`${this.base}/additional-collections/${id}`);
+  }
+  createAdditionalCollection(payload: CreateAdditionalCollectionPayload) {
+    return this.http.post<AdditionalCollectionDto>(`${this.base}/additional-collections`, payload);
+  }
+  updateAdditionalCollection(id: number, payload: UpdateAdditionalCollectionPayload) {
+    return this.http.put<AdditionalCollectionDto>(`${this.base}/additional-collections/${id}`, payload);
+  }
+  deleteAdditionalCollection(id: number) {
+    return this.http.delete<void>(`${this.base}/additional-collections/${id}`);
+  }
+  additionalCollectionHistory(id: number) {
+    return this.http.get<AdditionalCollectionAuditEntryDto[]>(`${this.base}/additional-collections/${id}/history`);
+  }
+
+  // ----- Dues & Reminders -----
+  getMemberDueSummary(memberId: number) {
+    return this.http.get<MemberDueSummaryDto>(`${this.base}/dues/${memberId}/summary`);
+  }
+  sendReminders(payload: SendReminderPayload) {
+    return this.http.post<SendReminderResultDto>(`${this.base}/reminders/send`, payload);
+  }
+
   // ----- Fines -----
+  getFinesSummary() {
+    return this.http.get<FineSummaryDto>(`${this.base}/fines/summary`);
+  }
   getMemberFines(memberId: number) {
     return this.http.get<MemberFineDto[]>(`${this.base}/fines/member/${memberId}`);
   }

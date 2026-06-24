@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminApi } from '../../../core/services/admin.api';
-import { MemberDto, MemberFineDto } from '../../../core/models/admin.models';
+import { FineSummaryDto, MemberDto, MemberFineDto } from '../../../core/models/admin.models';
 
 @Component({
     selector: 'app-admin-fines',
@@ -18,6 +18,10 @@ export class AdminFinesComponent {
     members = signal<MemberDto[]>([]);
     selectedMemberId = signal<number | null>(null);
     fines = signal<MemberFineDto[]>([]);
+    summary = signal<FineSummaryDto | null>(null);
+
+    memberSearch = signal('');
+    dropdownOpen = signal(false);
 
     loading = signal(false);
     evaluating = signal(false);
@@ -46,17 +50,52 @@ export class AdminFinesComponent {
         this.activeFines().reduce((sum, f) => sum + this.fineBalance(f), 0)
     );
 
+    filteredMembers = computed(() => {
+        const q = this.memberSearch().toLowerCase();
+        if (!q) return this.members();
+        return this.members().filter(m =>
+            m.fullName.toLowerCase().includes(q) || m.memberCode.toLowerCase().includes(q)
+        );
+    });
+
+    selectedMemberName = computed(() => {
+        const id = this.selectedMemberId();
+        return this.members().find(m => m.memberId === id)?.fullName ?? '';
+    });
+
     constructor() {
         this.api.listMembers().subscribe({
             next: (m) => this.members.set(m),
             error: () => {}
         });
+        this.api.getFinesSummary().subscribe({
+            next: (s) => this.summary.set(s),
+            error: () => {}
+        });
+    }
+
+    onSearchInput(value: string) {
+        this.memberSearch.set(value);
+        this.dropdownOpen.set(true);
     }
 
     selectMember(id: number) {
+        const member = this.members().find(m => m.memberId === id);
         this.selectedMemberId.set(id);
+        this.memberSearch.set(member?.fullName ?? '');
+        this.dropdownOpen.set(false);
         this.loadFines(id);
     }
+
+    clearSelection() {
+        this.selectedMemberId.set(null);
+        this.memberSearch.set('');
+        this.fines.set([]);
+        this.dropdownOpen.set(false);
+    }
+
+    onSearchFocus() { this.dropdownOpen.set(true); }
+    onSearchBlur() { setTimeout(() => this.dropdownOpen.set(false), 150); }
 
     loadFines(memberId: number) {
         this.loading.set(true);
@@ -78,6 +117,7 @@ export class AdminFinesComponent {
                 this.evaluating.set(false);
                 this.success.set(r.message);
                 this.loadFines(id);
+                this.api.getFinesSummary().subscribe({ next: (s) => this.summary.set(s), error: () => {} });
             },
             error: (e) => { this.evaluating.set(false); this.error.set(e?.error?.message ?? 'Evaluation failed.'); }
         });
@@ -94,6 +134,7 @@ export class AdminFinesComponent {
                 this.success.set(r.message);
                 const id = this.selectedMemberId();
                 if (id) this.loadFines(id);
+                this.api.getFinesSummary().subscribe({ next: (s) => this.summary.set(s), error: () => {} });
             },
             error: (e) => { this.evaluating.set(false); this.error.set(e?.error?.message ?? 'Evaluation failed.'); }
         });
@@ -143,6 +184,7 @@ export class AdminFinesComponent {
                 this.success.set('Fine payment recorded successfully.');
                 const id = this.selectedMemberId();
                 if (id) this.loadFines(id);
+                this.api.getFinesSummary().subscribe({ next: (s) => this.summary.set(s), error: () => {} });
             },
             error: (e) => { this.saving.set(false); this.error.set(e?.error?.message ?? 'Payment recording failed.'); }
         });
@@ -169,15 +211,11 @@ export class AdminFinesComponent {
                 this.success.set('Fine updated successfully.');
                 const id = this.selectedMemberId();
                 if (id) this.loadFines(id);
+                this.api.getFinesSummary().subscribe({ next: (s) => this.summary.set(s), error: () => {} });
             },
             error: (e) => { this.saving.set(false); this.error.set(e?.error?.message ?? 'Waive failed.'); }
         });
     }
-
-    selectedMemberName = computed(() => {
-        const id = this.selectedMemberId();
-        return this.members().find(m => m.memberId === id)?.fullName ?? '';
-    });
 
     fineBalance(f: MemberFineDto) { return f.fineAmount - f.waivedAmount - f.amountPaidSoFar; }
 

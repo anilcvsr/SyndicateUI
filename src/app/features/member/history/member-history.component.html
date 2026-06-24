@@ -29,4 +29,36 @@
       </table>
     }
   </div>
+
+  <div class="card">
+    <h3 class="card-title">Fine History</h3>
+    @if (finesLoading()) {
+      <p class="muted">Loading…</p>
+    } @else if (fines().length === 0) {
+      <p class="muted">No fine history found.</p>
+    } @else {
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Fine Date</th>
+            <th>Reason</th>
+            <th class="text-right">Fine Amount</th>
+            <th>Status</th>
+            <th>Payment Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of fines(); track f.fineId) {
+            <tr>
+              <td>{{ f.monthReference | date:'MMM yyyy' }}</td>
+              <td class="muted">Late payment fine</td>
+              <td class="text-right">{{ f.fineAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
+              <td><span class="badge" [class]="fineBadge(f.status)">{{ f.status }}</span></td>
+              <td>{{ f.paidAt ? (f.paidAt | date:'dd MMM yyyy') : '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
 </div>

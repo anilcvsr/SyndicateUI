@@ -1,2 +1,93 @@
-.page-header { display:flex; justify-content:space-between; align-items:flex-end; gap: 12px; flex-wrap: wrap; }
-.page-title { font-size: 22px; font-weight: 700; margin: 0; }
+.page-header { display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap; }
+.page-title { font-size:22px; font-weight:700; margin:0; }
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 16px;
+}
+
+.row-selected { background: #f0f5ff !important; }
+
+.text-danger { color: var(--color-danger); }
+
+/* Modal override for wider reminder preview */
+.modal-wide {
+  width: min(720px, 100%);
+}
+
+/* Scrollable list of reminder cards inside modal */
+.reminder-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: calc(100vh - 320px);
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.reminder-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  background: #fafbfd;
+}
+
+.reminder-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.due-table {
+  font-size: 13px;
+  margin-bottom: 0;
+
+  td { padding: 7px 10px; }
+  th { font-size: 11px; }
+}
+
+.total-row td {
+  background: #f0f5ff;
+  border-top: 2px solid var(--color-border);
+}
+
+.due-summary {
+  border-top: 1px solid var(--color-border);
+  margin-top: 10px;
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.due-summary-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.due-summary-total {
+  border-top: 1px solid var(--color-border);
+  margin-top: 4px;
+  padding-top: 6px;
+  font-size: 14px;
+}
+
+.grand-total-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #fff5f5;
+  border: 1px solid #f5c6c6;
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+}

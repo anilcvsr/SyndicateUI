@@ -1,0 +1,57 @@
+.last-updated {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.table-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.member-code {
+  font-size: 12px;
+}
+
+.outstanding-due {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.summary-card {
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 8px;
+  }
+
+  .summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    span {
+      font-size: 12px;
+    }
+
+    strong {
+      font-size: 16px;
+    }
+  }
+
+  .summary-total {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--border, #e5e7eb);
+    padding-top: 12px;
+    margin-top: 4px;
+
+    strong {
+      font-size: 20px;
+    }
+  }
+}

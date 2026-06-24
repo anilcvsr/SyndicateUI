@@ -241,3 +241,34 @@ export interface UpdateFineSettingsPayload {
 export interface MemberFineOverridePayload {
     fineOverrideAmount: number | null;
 }
+
+export interface FineSummaryDto {
+    totalExpected: number;
+    totalCollected: number;
+    totalPending: number;
+}
+
+export interface MemberDueSummaryDto {
+    memberId: number;
+    memberCode: string;
+    memberName: string;
+    phone: string;
+    reminderDate: string;
+    loanOutstanding: number;
+    loanInterestDue: number;
+    contributionPending: number;
+    fineAmount: number;
+    otherCharges: number;
+    totalPending: number;
+}
+
+export interface SendReminderPayload {
+    memberIds: number[];
+    channel: string;
+}
+
+export interface SendReminderResultDto {
+    sent: number[];
+    failed: number[];
+    totalSent: number;
+}

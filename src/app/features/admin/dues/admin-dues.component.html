@@ -1,51 +1,230 @@
 <div class="stack">
-    <header class="page-header">
-        <div>
-            <h1 class="page-title">Pending Dues</h1>
-            <p class="muted">Outstanding contributions across all active members.</p>
-        </div>
-        <div class="row-wrap">
-            <select class="select" style="width:auto" [value]="filter()" (change)="filter.set($any($event.target).value)">
-                <option value="ALL">All priorities</option>
-                <option value="HIGH">🔴 High</option>
-                <option value="MED">🟡 Medium</option>
-                <option value="LOW">🟢 Low</option>
-            </select>
-            <select class="select" style="width:auto" [value]="sort()" (change)="sort.set($any($event.target).value)">
-                <option value="due">Sort: Amount Due</option>
-                <option value="months">Sort: Months Pending</option>
-            </select>
-        </div>
-    </header>
 
-    <div class="card">
-        @if (loading()) {
-        <p class="muted">Loading…</p>
-        } @else if (error()) {
-        <div class="toast toast-error">{{ error() }}</div>
-        } @else if (visible().length === 0) {
-        <p class="muted">🎉 No pending dues for the selected filter.</p>
-        } @else {
-        <div class="row" style="justify-content:space-between;margin-bottom:10px">
-            <span class="muted">{{ visible().length }} member(s) with pending dues</span>
-            <strong>Total: {{ totalDue() | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong>
-        </div>
+  <!-- Summary Banner -->
+  <div class="kpi-grid">
+    <div class="kpi">
+      <p class="kpi-label">Members With Dues</p>
+      <p class="kpi-value">{{ rows().length }}</p>
+    </div>
+    <div class="kpi">
+      <p class="kpi-label">Grand Total Pending</p>
+      <p class="kpi-value">{{ grandTotal() | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p>
+    </div>
+  </div>
+
+  <!-- Page Header + Send Button -->
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Pending Dues</h1>
+      <p class="muted">Outstanding dues across all active members.</p>
+    </div>
+    <button class="btn btn-primary" [disabled]="selectedCount() === 0" (click)="openModal()">
+      @if (selectedCount() > 0) { Send Reminder ({{ selectedCount() }}) } @else { Send Reminder }
+    </button>
+  </header>
+
+  <!-- Filters -->
+  <div class="card filter-bar">
+    <input class="input" style="max-width:220px" placeholder="Search name or code…"
+           [value]="filterSearch()"
+           (input)="filterSearch.set($any($event.target).value)">
+    <select class="select" style="width:auto"
+            [value]="filterPriority()"
+            (change)="filterPriority.set($any($event.target).value)">
+      <option value="ALL">All priorities</option>
+      <option value="HIGH">🔴 High</option>
+      <option value="MED">🟡 Medium</option>
+      <option value="LOW">🟢 Low</option>
+    </select>
+    <input class="input" style="max-width:160px" type="number" min="0" placeholder="Min amount (₹)"
+           [value]="filterMinAmount() ?? ''"
+           (input)="filterMinAmount.set($any($event.target).value ? +$any($event.target).value : null)">
+    <select class="select" style="width:auto"
+            [value]="sort()"
+            (change)="sort.set($any($event.target).value)">
+      <option value="due">Sort: Amount Due</option>
+      <option value="months">Sort: Months Pending</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="card">
+    @if (loading()) {
+      <p class="muted">Loading…</p>
+    } @else if (error()) {
+      <div class="toast toast-error">{{ error() }}</div>
+    } @else if (visible().length === 0) {
+      <p class="muted">🎉 No pending dues for the selected filter.</p>
+    } @else {
+      <div class="row" style="justify-content:space-between;margin-bottom:10px">
+        <span class="muted">{{ visible().length }} member(s) shown</span>
+        <strong>Filtered Total: {{ visibleTotal() | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong>
+      </div>
+      <div style="overflow-x:auto">
         <table class="table">
-            <thead>
-                <tr><th>Member</th><th>Months Pending</th><th class="text-right">Amount Due</th><th>Last Paid</th><th class="text-right">Action</th></tr>
-            </thead>
-            <tbody>
-                @for (d of visible(); track d.memberId) {
+          <thead>
+            <tr>
+              <th style="width:36px">
+                <input type="checkbox" [checked]="allVisibleSelected()" (change)="toggleAll()">
+              </th>
+              <th>Member</th>
+              <th>Priority</th>
+              <th>Months Pending</th>
+              <th class="text-right">Amount Due</th>
+              <th>Last Paid</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (d of visible(); track d.memberId) {
+            <tr [class.row-selected]="isSelected(d.memberId)">
+              <td><input type="checkbox" [checked]="isSelected(d.memberId)" (change)="toggleSelect(d.memberId)"></td>
+              <td>
+                <strong>{{ d.memberName }}</strong>
+                <div class="muted" style="font-size:12px">{{ d.memberCode }}</div>
+              </td>
+              <td><span class="badge" [ngClass]="priorityBadge(d.priority)">{{ d.priority }}</span></td>
+              <td>{{ d.monthsPending }}</td>
+              <td class="text-right">
+                <span [class.text-danger]="d.priority === 'HIGH'">
+                  {{ d.totalDue | currency:'INR':'symbol':'1.0-0':'en-IN' }}
+                </span>
+              </td>
+              <td>{{ d.lastPaymentDate ? (d.lastPaymentDate | date:'dd MMM yyyy') : '—' }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+</div>
+
+<!-- Reminder Preview Modal -->
+@if (showModal()) {
+<div class="modal-backdrop" (click)="closeModal()">
+  <div class="modal modal-wide" (click)="$event.stopPropagation()">
+
+    <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h2 class="modal-title" style="margin:0">Reminder Preview</h2>
+      <button class="btn btn-ghost btn-sm" (click)="closeModal()">✕ Close</button>
+    </div>
+
+    @if (sendSuccess()) {
+      <div class="toast toast-success" style="margin-bottom:16px">{{ sendSuccess() }}</div>
+    }
+
+    @if (sendError()) {
+      <div class="toast toast-error" style="margin-bottom:12px">{{ sendError() }}</div>
+    }
+
+    @if (loadingPreviews()) {
+      <p class="muted">Loading due summaries…</p>
+    } @else if (previews().length > 0) {
+
+      <div class="reminder-list">
+        @for (p of previews(); track p.memberId) {
+        <div class="reminder-card">
+          <div class="reminder-header">
+            <div>
+              <strong>{{ p.memberName }}</strong>
+              <span class="muted" style="margin-left:8px;font-size:13px">{{ p.memberCode }}</span>
+            </div>
+            <div class="muted" style="font-size:13px">📱 {{ p.phone }}</div>
+          </div>
+          <div class="muted" style="font-size:12px;margin-bottom:10px">
+            Reminder Date: {{ p.reminderDate | date:'dd MMM yyyy' }}
+          </div>
+
+          <div style="overflow-x:auto">
+            <table class="table due-table">
+              <thead>
+                <tr><th>Description</th><th class="text-right">Amount</th></tr>
+              </thead>
+              <tbody>
+                @if (p.loanOutstanding > 0) {
                 <tr>
-                    <td><strong>{{ d.memberName }}</strong></td>
-                    <td>{{ d.monthsPending }}</td>
-                    <td class="text-right">{{ d.totalDue | currency:'INR':'symbol':'1.0-0':'en-IN' }}</td>
-                    <td>{{ d.lastPaymentDate ? (d.lastPaymentDate | date:'dd MMM yyyy') : '—' }}</td>
-                    <td class="text-right"><a class="btn btn-sm btn-ghost" target="_blank" rel="noopener" [href]="reminderLink(d)">Send Reminder</a></td>
+                  <td>Loan Outstanding Amount</td>
+                  <td class="text-right">{{ p.loanOutstanding | currency:'INR':'symbol':'1.0-2':'en-IN' }}</td>
                 </tr>
                 }
-            </tbody>
-        </table>
+                @if (p.loanInterestDue > 0) {
+                <tr>
+                  <td>Loan Interest Due</td>
+                  <td class="text-right text-danger">{{ p.loanInterestDue | currency:'INR':'symbol':'1.0-2':'en-IN' }}</td>
+                </tr>
+                }
+                @if (p.contributionPending > 0) {
+                <tr>
+                  <td>Pending Monthly Contributions</td>
+                  <td class="text-right">{{ p.contributionPending | currency:'INR':'symbol':'1.0-2':'en-IN' }}</td>
+                </tr>
+                }
+                @if (p.fineAmount > 0) {
+                <tr>
+                  <td>Fine Amount</td>
+                  <td class="text-right text-danger">{{ p.fineAmount | currency:'INR':'symbol':'1.0-2':'en-IN' }}</td>
+                </tr>
+                }
+                @if (p.otherCharges > 0) {
+                <tr>
+                  <td>Other Charges</td>
+                  <td class="text-right">{{ p.otherCharges | currency:'INR':'symbol':'1.0-2':'en-IN' }}</td>
+                </tr>
+                }
+                <tr class="total-row">
+                  <td><strong>Total Pending Amount</strong></td>
+                  <td class="text-right text-danger"><strong>{{ p.totalPending | currency:'INR':'symbol':'1.0-2':'en-IN' }}</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="due-summary">
+            @if (p.loanOutstanding + p.loanInterestDue > 0) {
+            <div class="due-summary-row">
+              <span>Total Loan Due</span>
+              <span>{{ (p.loanOutstanding + p.loanInterestDue) | currency:'INR':'symbol':'1.0-2':'en-IN' }}</span>
+            </div>
+            }
+            @if (p.contributionPending > 0) {
+            <div class="due-summary-row">
+              <span>Total Contribution Due</span>
+              <span>{{ p.contributionPending | currency:'INR':'symbol':'1.0-2':'en-IN' }}</span>
+            </div>
+            }
+            @if (p.fineAmount > 0) {
+            <div class="due-summary-row">
+              <span>Total Fine Due</span>
+              <span class="text-danger">{{ p.fineAmount | currency:'INR':'symbol':'1.0-2':'en-IN' }}</span>
+            </div>
+            }
+            <div class="due-summary-row due-summary-total">
+              <strong>Grand Total Pending</strong>
+              <strong class="text-danger">{{ p.totalPending | currency:'INR':'symbol':'1.0-2':'en-IN' }}</strong>
+            </div>
+          </div>
+        </div>
         }
-    </div>
+      </div>
+
+      @if (previews().length > 1) {
+      <div class="grand-total-bar">
+        <span class="muted">Grand Total — {{ previews().length }} members</span>
+        <strong class="text-danger" style="font-size:18px">
+          {{ previewTotal() | currency:'INR':'symbol':'1.0-2':'en-IN' }}
+        </strong>
+      </div>
+      }
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="closeModal()" [disabled]="sending()">Cancel</button>
+        <button class="btn btn-primary" [disabled]="sending()" (click)="sendAll()">
+          @if (sending()) { Sending… } @else { Confirm &amp; Send All }
+        </button>
+      </div>
+
+    }
+  </div>
 </div>
+}

@@ -24,7 +24,8 @@ export class MemberShellComponent {
       ? [{ path: '/member/proofs', label: 'Upload Proof', icon: '📎' }]
       : []),
     { path: '/member/expenses', label: 'Group Expenses', icon: '💸' },
-    { path: '/member/loans', label: 'My Loans', icon: '🏦' }
+    { path: '/member/loans', label: 'My Loans', icon: '🏦' },
+    { path: '/member/group-financial', label: 'Group Financial Details', icon: '📊' }
   ]);
 
   constructor() {
