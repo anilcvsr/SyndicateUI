@@ -1,0 +1,226 @@
+<!-- NAV -->
+<header class="nav" [class.scrolled]="navScrolled()">
+  <div class="nav-inner">
+    <a class="brand" routerLink="/">
+      <img src="syndicate-logo.png" alt="Syndicate" class="brand-logo" />
+      <span class="brand-name">Syndicate</span>
+    </a>
+
+    <!-- Desktop nav links -->
+    <nav class="nav-links" aria-label="Main navigation">
+      <button class="nav-link-btn" (click)="scrollTo('hero')">Home</button>
+      <button class="nav-link-btn" (click)="scrollTo('features')">Features</button>
+      <button class="nav-link-btn" (click)="scrollTo('benefits')">Benefits</button>
+      <button class="nav-link-btn" (click)="scrollTo('contact')">Contact</button>
+    </nav>
+
+    <div class="nav-actions">
+      <a routerLink="/login" class="btn btn-outline-nav">Login</a>
+      <button class="btn btn-primary-nav" (click)="openModal()">Register</button>
+    </div>
+
+    <!-- Hamburger -->
+    <button class="hamburger" (click)="toggleMobileNav()" [attr.aria-expanded]="mobileNavOpen()" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <!-- Mobile nav -->
+  @if (mobileNavOpen()) {
+    <div class="mobile-nav">
+      <button class="nav-link-btn" (click)="scrollTo('hero')">Home</button>
+      <button class="nav-link-btn" (click)="scrollTo('features')">Features</button>
+      <button class="nav-link-btn" (click)="scrollTo('benefits')">Benefits</button>
+      <button class="nav-link-btn" (click)="scrollTo('contact')">Contact</button>
+      <div class="mobile-nav-actions">
+        <a routerLink="/login" class="btn btn-outline-nav" (click)="closeMobileNav()">Login</a>
+        <button class="btn btn-primary-nav" (click)="openModal()">Register</button>
+      </div>
+    </div>
+  }
+</header>
+
+<main>
+  <!-- HERO -->
+  <section id="hero" class="hero-section">
+    <div class="hero-inner">
+      <div class="hero-content">
+        <span class="badge-pill">Digital Syndicate &amp; Fund Management Platform</span>
+        <h1 class="hero-title">Manage Your Syndicate Operations Efficiently</h1>
+        <p class="hero-subtitle">
+          Complete member, collection, auction, payment, and financial management in one platform.
+          Simplify. Streamline. Succeed.
+        </p>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-mockup">
+          <div class="mockup-screen">
+            <div class="mockup-topbar">
+              <span></span><span></span><span></span>
+            </div>
+            <div class="mockup-content">
+              <div class="mockup-stat-row">
+                <div class="mockup-stat"><div class="ms-label">Total Members</div><div class="ms-value">128</div></div>
+                <div class="mockup-stat"><div class="ms-label">Fund Balance</div><div class="ms-value">₹12.4L</div></div>
+                <div class="mockup-stat"><div class="ms-label">Collected</div><div class="ms-value">98%</div></div>
+              </div>
+              <div class="mockup-bar-chart">
+                @for (h of [60,85,70,95,80,100,75]; track $index) {
+                  <div class="mockup-bar" [style.height.%]="h"></div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features" class="features-section">
+    <div class="container">
+      <div class="section-header">
+        <h2>Everything You Need, All in One Place</h2>
+        <p>Purpose-built tools for complete syndicate operations management</p>
+      </div>
+      <div class="features-grid">
+        @for (f of features; track f.title) {
+          <article class="feature-card">
+            <div class="feature-icon">{{ f.icon }}</div>
+            <h3 class="feature-title">{{ f.title }}</h3>
+            <p class="feature-desc">{{ f.description }}</p>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- BENEFITS / PROBLEM-SOLUTION -->
+  <section id="benefits" class="benefits-section">
+    <div class="container">
+      <div class="section-header light">
+        <h2>Still Managing Funds Manually?</h2>
+        <p>You're losing time, money, and member trust every month.</p>
+      </div>
+
+      <div class="comparison-grid">
+        <div class="comparison-card problem">
+          <h3>❌ The Problem</h3>
+          <ul>
+            @for (p of problems; track p) {
+              <li>{{ p }}</li>
+            }
+          </ul>
+        </div>
+        <div class="comparison-card solution">
+          <h3>✅ The Solution</h3>
+          <ul>
+            @for (s of solutions; track s) {
+              <li>{{ s }}</li>
+            }
+          </ul>
+        </div>
+      </div>
+
+      <div class="benefits-list">
+        @for (b of benefits; track b.text) {
+          <div class="benefit-item">
+            <span class="benefit-icon">{{ b.icon }}</span>
+            <span>{{ b.text }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-section">
+    <div class="container">
+      <div class="section-header">
+        <h2>Get Started in Minutes</h2>
+        <p>A simple six-step process to get your syndicate running digitally</p>
+      </div>
+      <div class="steps-row">
+        @for (step of steps; track step.num) {
+          <div class="step-item">
+            <div class="step-circle">
+              <span class="step-num">{{ step.num }}</span>
+            </div>
+            <div class="step-icon">{{ step.icon }}</div>
+            <div class="step-title">{{ step.title }}</div>
+          </div>
+          @if (!$last) {
+            <div class="step-connector" aria-hidden="true"></div>
+          }
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="contact-section">
+    <div class="container">
+      <div class="section-header">
+        <h2>Get in Touch</h2>
+        <p>Have questions? We'd love to hear from you.</p>
+      </div>
+      <div class="contact-grid">
+        <div class="contact-info">
+          <div class="contact-item">
+            <span class="contact-icon">🌐</span>
+            <div>
+              <div class="contact-label">Website</div>
+              <div>syndicates.co.in</div>
+            </div>
+          </div>
+          <div class="contact-item">
+            <span class="contact-icon">📧</span>
+            <div>
+              <div class="contact-label">Email</div>
+              <div>info&#64;syndicates.co.in</div>
+            </div>
+          </div>
+          <div class="contact-cta">
+            <p>Ready to digitize your syndicate?</p>
+            <button class="btn btn-primary-nav" (click)="openModal()">Request Setup</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <img src="syndicate-logo.png" alt="Syndicate" />
+          <span>Syndicate</span>
+        </div>
+        <p>Digital Syndicate &amp; Fund Management Platform</p>
+      </div>
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <button class="footer-link" (click)="scrollTo('hero')">Home</button>
+        <button class="footer-link" (click)="scrollTo('features')">Features</button>
+        <button class="footer-link" (click)="scrollTo('benefits')">Benefits</button>
+        <button class="footer-link" (click)="scrollTo('contact')">Contact</button>
+      </div>
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <a routerLink="/login" class="footer-link">Member Login</a>
+        <a routerLink="/admin" class="footer-link">Admin Login</a>
+        <button class="footer-link" (click)="openModal()">Request Setup</button>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Syndicate Software Solutions · syndicates.co.in</span>
+    </div>
+  </div>
+</footer>
+
+@if (showModal()) {
+  <app-register-modal (close)="closeModal()" />
+}

@@ -5,6 +5,11 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
+    loadComponent: () => import('./features/landing/landing.component').then((m) => m.LandingComponent)
+  },
+  {
+    path: 'login',
+    pathMatch: 'full',
     canActivate: [publicOnlyGuard],
     loadComponent: () => import('./features/auth/login.component').then((m) => m.LoginComponent)
   },
@@ -92,6 +97,11 @@ export const routes: Routes = [
             path: 'settings',
             loadComponent: () =>
               import('./features/admin/settings/admin-settings.component').then((m) => m.AdminSettingsComponent)
+          },
+          {
+            path: 'registration-requests',
+            loadComponent: () =>
+              import('./features/admin/registration-requests/admin-registration-requests.component').then((m) => m.AdminRegistrationRequestsComponent)
           }
         ]
       }

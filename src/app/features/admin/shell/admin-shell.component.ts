@@ -32,7 +32,8 @@ export class AdminShellComponent implements OnInit, OnDestroy {
     { path: '/admin/loan-summary', label: 'Loan Summary', icon: '📉' },
     { path: '/admin/fines', label: 'Fines', icon: '🚨' },
     { path: '/admin/additional-collections', label: 'Additional Collections', icon: '💰' },
-    { path: '/admin/settings', label: 'Settings', icon: '⚙️' }
+    { path: '/admin/settings', label: 'Settings', icon: '⚙️' },
+    { path: '/admin/registration-requests', label: 'New Requests', icon: '📩' }
   ];
 
   ngOnInit() {

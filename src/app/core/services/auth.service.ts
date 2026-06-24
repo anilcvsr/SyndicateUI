@@ -54,11 +54,12 @@ export class AuthService {
   }
 
   logout(): void {
+    const role = this._auth()?.role;
     this._auth.set(null);
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem(STORAGE_KEY);
     }
-    this.router.navigate(['/']);
+    this.router.navigate([role === 'Admin' ? '/admin' : '/login']);
   }
 
   getAccessToken(): string | null {

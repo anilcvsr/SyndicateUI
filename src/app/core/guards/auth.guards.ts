@@ -6,7 +6,7 @@ export const authGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
   if (auth.isAuthenticated()) return true;
-  router.navigate(['/']);
+  router.navigate(['/login']);
   return false;
 };
 
@@ -22,7 +22,7 @@ export const memberGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
   if (auth.role() === 'Member') return true;
-  router.navigate(['/']);
+  router.navigate(['/login']);
   return false;
 };
 
