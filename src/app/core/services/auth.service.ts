@@ -21,6 +21,8 @@ interface StoredAuth {
   displayName: string;
   memberId: number | null;
   memberCode: string | null;
+  syndicateId: number | null;
+  syndicateName: string | null;
   expiresAtMs: number;
 }
 
@@ -36,10 +38,18 @@ export class AuthService {
   displayName = computed(() => this._auth()?.displayName ?? '');
   memberId = computed(() => this._auth()?.memberId ?? null);
   memberCode = computed(() => this._auth()?.memberCode ?? null);
+  syndicateId = computed(() => this._auth()?.syndicateId ?? null);
+  syndicateName = computed(() => this._auth()?.syndicateName ?? null);
 
   adminLogin(payload: AdminLoginPayload): Observable<TokenResponse> {
     return this.http
       .post<TokenResponse>(`${environment.apiBaseUrl}/api/auth/admin/login`, payload)
+      .pipe(tap((r) => this.persist(r)));
+  }
+
+  superAdminLogin(payload: AdminLoginPayload): Observable<TokenResponse> {
+    return this.http
+      .post<TokenResponse>(`${environment.apiBaseUrl}/api/auth/super-admin/login`, payload)
       .pipe(tap((r) => this.persist(r)));
   }
 
@@ -59,7 +69,13 @@ export class AuthService {
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem(STORAGE_KEY);
     }
-    this.router.navigate([role === 'Admin' ? '/admin' : '/login']);
+    if (role === 'SuperAdmin') {
+      this.router.navigate(['/super-admin']);
+    } else if (role === 'Admin' || role === 'SyndicateAdmin') {
+      this.router.navigate(['/admin']);
+    } else {
+      this.router.navigate(['/login']);
+    }
   }
 
   getAccessToken(): string | null {
@@ -77,6 +93,8 @@ export class AuthService {
       displayName: r.displayName,
       memberId: r.memberId,
       memberCode: r.memberCode,
+      syndicateId: r.syndicateId,
+      syndicateName: r.syndicateName,
       expiresAtMs: Date.now() + r.expiresInSeconds * 1000
     };
     this._auth.set(stored);

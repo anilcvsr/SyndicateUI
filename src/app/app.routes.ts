@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { adminGuard, authGuard, memberGuard, publicOnlyGuard } from './core/guards/auth.guards';
+import { adminGuard, authGuard, memberGuard, publicOnlyGuard, superAdminGuard } from './core/guards/auth.guards';
 
 export const routes: Routes = [
   {
@@ -97,6 +97,36 @@ export const routes: Routes = [
             path: 'settings',
             loadComponent: () =>
               import('./features/admin/settings/admin-settings.component').then((m) => m.AdminSettingsComponent)
+          },
+        ]
+      }
+    ]
+  },
+  {
+    path: 'super-admin',
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./features/super-admin/super-admin-login.component').then((m) => m.SuperAdminLoginComponent)
+      },
+      {
+        path: '',
+        canActivate: [authGuard, superAdminGuard],
+        loadComponent: () =>
+          import('./features/super-admin/super-admin-shell.component').then((m) => m.SuperAdminShellComponent),
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+          {
+            path: 'dashboard',
+            loadComponent: () =>
+              import('./features/super-admin/super-admin-dashboard.component').then((m) => m.SuperAdminDashboardComponent)
+          },
+          {
+            path: 'syndicates',
+            loadComponent: () =>
+              import('./features/super-admin/super-admin-syndicates.component').then((m) => m.SuperAdminSyndicatesComponent)
           },
           {
             path: 'registration-requests',

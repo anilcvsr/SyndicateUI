@@ -3,7 +3,7 @@
   <header class="mobile-topbar">
     <div class="brand">
       <img class="brand-logo" src="syndicate-logo.png" alt="Syndicate" />
-      <span class="brand-name">Syndicate</span>
+      <span class="brand-name">{{ auth.syndicateName() || 'Syndicate' }}</span>
     </div>
     <button class="hamburger" (click)="toggleMenu()" [attr.aria-expanded]="menuOpen()" aria-label="Toggle navigation">
       <span></span><span></span><span></span>
@@ -19,16 +19,34 @@
     <div class="brand">
       <img class="brand-logo" src="syndicate-logo.png" alt="Syndicate" />
       <div class="brand-text">
-        <div class="brand-name">Syndicate</div>
+        <div class="brand-name">{{ auth.syndicateName() || 'Syndicate' }}</div>
         <div class="brand-role muted">Admin Console</div>
       </div>
     </div>
     <nav>
-      @for (item of nav; track item.path) {
-        <a [routerLink]="item.path" routerLinkActive="active" class="nav-link" [title]="item.label">
-          <span class="icon">{{ item.icon }}</span>
-          <span class="nav-label">{{ item.label }}</span>
-        </a>
+      <!-- Dashboard (standalone) -->
+      <a [routerLink]="dashboardItem.path" routerLinkActive="active" class="nav-link" [title]="dashboardItem.label">
+        <span class="icon">{{ dashboardItem.icon }}</span>
+        <span class="nav-label">{{ dashboardItem.label }}</span>
+      </a>
+
+      <!-- Grouped sections -->
+      @for (group of navGroups; track group.id) {
+        <div class="nav-group" [class.group-active]="isGroupActive(group)" [class.group-expanded]="isGroupExpanded(group.id)">
+          <button class="group-header" (click)="toggleGroup(group.id)" [title]="group.label" type="button">
+            <span class="icon">{{ group.icon }}</span>
+            <span class="nav-label group-label">{{ group.label }}</span>
+            <span class="chevron nav-label">{{ isGroupExpanded(group.id) ? '▾' : '▸' }}</span>
+          </button>
+          <div class="group-items" [class.collapsed]="!isGroupExpanded(group.id)">
+            @for (item of group.items; track item.path) {
+              <a [routerLink]="item.path" routerLinkActive="active" class="nav-link nav-child" [title]="item.label">
+                <span class="icon">{{ item.icon }}</span>
+                <span class="nav-label">{{ item.label }}</span>
+              </a>
+            }
+          </div>
+        </div>
       }
     </nav>
     <div class="sidebar-footer">

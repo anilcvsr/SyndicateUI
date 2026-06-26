@@ -13,8 +13,17 @@ export const authGuard: CanActivateFn = () => {
 export const adminGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  if (auth.role() === 'Admin') return true;
+  const role = auth.role();
+  if (role === 'Admin' || role === 'SyndicateAdmin') return true;
   router.navigate(['/admin']);
+  return false;
+};
+
+export const superAdminGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  if (auth.role() === 'SuperAdmin') return true;
+  router.navigate(['/super-admin']);
   return false;
 };
 
@@ -30,7 +39,13 @@ export const publicOnlyGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
   if (!auth.isAuthenticated()) return true;
-  const target = auth.role() === 'Admin' ? '/admin/dashboard' : '/member/home';
-  router.navigate([target]);
+  const role = auth.role();
+  if (role === 'SuperAdmin') {
+    router.navigate(['/super-admin/dashboard']);
+  } else if (role === 'Admin' || role === 'SyndicateAdmin') {
+    router.navigate(['/admin/dashboard']);
+  } else {
+    router.navigate(['/member/home']);
+  }
   return false;
 };

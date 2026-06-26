@@ -1,4 +1,4 @@
-export type UserRole = 'Admin' | 'Member';
+export type UserRole = 'Admin' | 'SyndicateAdmin' | 'SuperAdmin' | 'Member';
 
 export interface TokenResponse {
   accessToken: string;
@@ -8,6 +8,8 @@ export interface TokenResponse {
   displayName: string;
   memberId: number | null;
   memberCode: string | null;
+  syndicateId: number | null;
+  syndicateName: string | null;
 }
 
 export interface OtpRequestResponse {

@@ -78,6 +78,9 @@
             @if (form.controls.phone.touched && form.controls.phone.invalid) {
               <span class="field-error">Enter a valid phone number.</span>
             }
+            @if (phoneConflict()) {
+              <span class="field-error">{{ phoneConflict() }}</span>
+            }
           </div>
           <div class="field">
             <label class="label">Joining Date</label>
@@ -91,7 +94,7 @@
 
           <div class="modal-actions">
             <button type="button" class="btn btn-secondary" (click)="showModal.set(false)">Cancel</button>
-            <button type="submit" class="btn btn-primary" [disabled]="saving()">
+            <button type="submit" class="btn btn-primary" [disabled]="saving() || !!phoneConflict()">
               {{ saving() ? 'Saving...' : (editing() ? 'Save Changes' : 'Create Member') }}
             </button>
           </div>

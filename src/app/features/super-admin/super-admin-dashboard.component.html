@@ -1,0 +1,119 @@
+<div class="stack">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Platform Dashboard</h1>
+      <p class="muted">Overview across all Syndicates on the platform</p>
+    </div>
+    <div class="row">
+      <a class="btn btn-secondary" routerLink="/super-admin/syndicates">View Syndicates</a>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="kpi-grid">
+      @for (i of [1,2,3,4,5,6]; track i) {
+        <div class="kpi">
+          <span class="skeleton" style="width:80px"></span>
+          <p class="kpi-value"><span class="skeleton" style="width:100px;min-height:22px"></span></p>
+        </div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="toast toast-error">{{ error() }}</div>
+  } @else if (stats()) {
+    <section class="kpi-grid">
+      <div class="kpi">
+        <p class="kpi-label">Total Syndicates</p>
+        <p class="kpi-value">{{ stats()!.totalSyndicates }}</p>
+      </div>
+      <div class="kpi">
+        <p class="kpi-label">Active Syndicates</p>
+        <p class="kpi-value success">{{ stats()!.activeSyndicates }}</p>
+      </div>
+      <div class="kpi">
+        <p class="kpi-label">Inactive Syndicates</p>
+        <p class="kpi-value danger">{{ stats()!.inactiveSyndicates }}</p>
+      </div>
+      <div class="kpi">
+        <p class="kpi-label">Total Members</p>
+        <p class="kpi-value">{{ stats()!.totalMembers }}</p>
+      </div>
+      <div class="kpi">
+        <p class="kpi-label">Total Collections</p>
+        <p class="kpi-value">{{ formatCurrency(stats()!.totalCollections) }}</p>
+      </div>
+      <div class="kpi">
+        <p class="kpi-label">Total Admins</p>
+        <p class="kpi-value">{{ stats()!.totalAdmins }}</p>
+      </div>
+      <div class="kpi">
+        <p class="kpi-label">Active Loans</p>
+        <p class="kpi-value warning">{{ formatCurrency(stats()!.totalLoans) }}</p>
+      </div>
+    </section>
+
+    <section class="two-col">
+      <div class="card">
+        <h3 class="card-title">Syndicate Status</h3>
+        <div class="status-list">
+          <div class="status-row">
+            <span class="badge badge-success">Active</span>
+            <span class="status-count">{{ stats()!.activeSyndicates }}</span>
+            <span class="muted" style="font-size:13px">of {{ stats()!.totalSyndicates }}</span>
+          </div>
+          <div class="status-row">
+            <span class="badge badge-danger">Inactive</span>
+            <span class="status-count">{{ stats()!.inactiveSyndicates }}</span>
+          </div>
+          <div class="status-row">
+            <span class="badge badge-neutral">Total</span>
+            <span class="status-count">{{ stats()!.totalSyndicates }}</span>
+          </div>
+        </div>
+        <a class="btn btn-ghost btn-sm" routerLink="/super-admin/syndicates">Manage Syndicates →</a>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">Quick Actions</h3>
+        <div class="quick-actions">
+          <a routerLink="/super-admin/syndicates" class="action-row">
+            <div class="action-icon-wrap">🏢</div>
+            <div>
+              <div class="action-title">Manage Syndicates</div>
+              <p class="muted" style="font-size:13px;margin:0">View, edit, activate or deactivate Syndicates</p>
+            </div>
+          </a>
+          <a routerLink="/super-admin/syndicates" class="action-row">
+            <div class="action-icon-wrap">➕</div>
+            <div>
+              <div class="action-title">Create New Syndicate</div>
+              <p class="muted" style="font-size:13px;margin:0">Onboard a new Syndicate to the platform</p>
+            </div>
+          </a>
+          <a routerLink="/super-admin/syndicates" class="action-row">
+            <div class="action-icon-wrap">👤</div>
+            <div>
+              <div class="action-title">Manage Admins</div>
+              <p class="muted" style="font-size:13px;margin:0">Create or reset Syndicate Admin credentials</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    @if (stats()!.recentActivity.length > 0) {
+      <section class="card">
+        <h3 class="card-title">Recent Activity</h3>
+        <div class="activity-list">
+          @for (item of stats()!.recentActivity; track item.timestamp) {
+            <div class="activity-row">
+              <span class="activity-badge activity-{{ item.type }}">{{ item.type }}</span>
+              <span class="activity-message">{{ item.message }}</span>
+              <span class="muted activity-time">{{ timeAgo(item.timestamp) }}</span>
+            </div>
+          }
+        </div>
+      </section>
+    }
+  }
+</div>

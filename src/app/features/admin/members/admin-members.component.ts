@@ -22,6 +22,7 @@ export class AdminMembersComponent {
   editing = signal<MemberDto | null>(null);
   saving = signal(false);
   includeInactive = signal(false);
+  phoneConflict = signal<string | null>(null);
 
   form = this.fb.group({
     fullName: ['', [Validators.required, Validators.maxLength(150)]],
@@ -33,6 +34,9 @@ export class AdminMembersComponent {
 
   constructor() {
     this.load();
+    this.form.controls.phone.valueChanges.subscribe(() => {
+      if (this.phoneConflict()) this.phoneConflict.set(null);
+    });
   }
 
   load() {
@@ -45,12 +49,14 @@ export class AdminMembersComponent {
 
   openAdd() {
     this.editing.set(null);
+    this.phoneConflict.set(null);
     this.form.reset({ fullName: '', email: '', phone: '', joiningDate: new Date().toISOString().slice(0, 10), isActive: true });
     this.showModal.set(true);
   }
 
   openEdit(m: MemberDto) {
     this.editing.set(m);
+    this.phoneConflict.set(null);
     this.form.reset({
       fullName: m.fullName,
       email: m.email ?? '',
@@ -62,7 +68,7 @@ export class AdminMembersComponent {
   }
 
   save() {
-    if (this.form.invalid || this.saving()) { this.form.markAllAsTouched(); return; }
+    if (this.form.invalid || this.saving() || this.phoneConflict()) { this.form.markAllAsTouched(); return; }
     this.saving.set(true);
     const v = this.form.getRawValue();
     const payload = {
@@ -77,7 +83,14 @@ export class AdminMembersComponent {
       : this.api.createMember(payload);
     obs.subscribe({
       next: () => { this.saving.set(false); this.showModal.set(false); this.load(); },
-      error: (e) => { this.saving.set(false); this.error.set(e?.error?.message ?? 'Save failed.'); }
+      error: (e) => {
+        this.saving.set(false);
+        if (e?.status === 409) {
+          this.phoneConflict.set(e?.error?.message ?? 'This mobile number is already registered with another member.');
+        } else {
+          this.error.set(e?.error?.message ?? 'Save failed.');
+        }
+      }
     });
   }
 
