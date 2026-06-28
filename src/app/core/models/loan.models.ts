@@ -13,6 +13,7 @@ export interface LoanDto {
   interestRate: number;
   interestType: LoanInterestType;
   interestAmount: number;
+  accruedInterest: number;
   releaseDate: string;
   expectedReturnDate: string;
   tenureMonths: number;

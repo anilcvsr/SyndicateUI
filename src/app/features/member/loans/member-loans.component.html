@@ -75,7 +75,7 @@
                 </div>
                 <div class="grid-2" style="margin-top:8px;gap:8px">
                     <div><span class="muted">Principal:</span> <strong>{{ l.principalAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong></div>
-                    <div><span class="muted">Interest:</span> {{ l.interestAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }} ({{ l.interestRate }}%)</div>
+                    <div><span class="muted">Accrued Interest:</span> {{ l.accruedInterest | currency:'INR':'symbol':'1.0-0':'en-IN' }} ({{ l.interestRate }}%)</div>
                     <div><span class="muted">Released:</span> {{ l.releaseDate | date:'dd MMM yyyy' }}</div>
                     <div><span class="muted">Due:</span> {{ l.expectedReturnDate | date:'dd MMM yyyy' }}@if (l.daysOverdue && l.daysOverdue > 0) {<span class="danger" style="margin-left:4px;font-size:12px">({{ l.daysOverdue }}d late)</span>}</div>
                     <div><span class="muted">Paid:</span> <span class="success"><strong>{{ l.amountPaidSoFar | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong></span></div>
@@ -114,7 +114,7 @@
 
             <div class="grid-2" style="margin:12px 0">
                 <div class="kpi"><p class="kpi-label">Principal</p><p class="kpi-value">{{ d.principalAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
-                <div class="kpi"><p class="kpi-label">Interest</p><p class="kpi-value">{{ d.interestAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }} <span class="muted" style="font-size:12px">({{ d.interestRate }}% {{ d.interestType === 'MonthlyRecurring' ? '/mo' : 'flat' }})</span></p></div>
+                <div class="kpi"><p class="kpi-label">Accrued Interest</p><p class="kpi-value">{{ d.accruedInterest | currency:'INR':'symbol':'1.0-0':'en-IN' }} <span class="muted" style="font-size:12px">({{ d.interestRate }}% {{ d.interestType === 'MonthlyRecurring' ? '/mo' : 'flat' }})</span></p></div>
                 <div class="kpi"><p class="kpi-label">Tenure</p><p class="kpi-value">{{ d.tenureMonths }} month(s)</p></div>
                 <div class="kpi"><p class="kpi-label">Outstanding</p><p class="kpi-value danger">{{ d.outstandingBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
                 <div class="kpi"><p class="kpi-label">Released</p><p class="kpi-value" style="font-size:16px">{{ d.releaseDate | date:'dd MMM yyyy' }}</p></div>

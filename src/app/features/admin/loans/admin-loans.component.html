@@ -95,7 +95,7 @@
                     <th>Code</th>
                     <th>Member</th>
                     <th class="text-right">Principal</th>
-                    <th class="text-right">Interest</th>
+                    <th class="text-right">Accrued Interest</th>
                     <th>Release</th>
                     <th>Due</th>
                     <th>Status</th>
@@ -111,7 +111,7 @@
                     <td>{{ l.memberName }} <span class="muted">({{ l.memberCode }})</span></td>
                     <td class="text-right"><strong>{{ l.principalAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong></td>
                     <td class="text-right">
-                        {{ l.interestAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}
+                        {{ l.accruedInterest | currency:'INR':'symbol':'1.0-0':'en-IN' }}
                         <div class="muted" style="font-size:11px">{{ l.interestRate }}% {{ l.interestType === 'MonthlyRecurring' ? '/mo' : 'flat' }}</div>
                     </td>
                     <td>{{ l.releaseDate | date:'dd MMM yyyy' }}</td>
@@ -233,7 +233,7 @@
 
             <div class="grid-2" style="margin:12px 0">
                 <div class="kpi"><p class="kpi-label">Principal</p><p class="kpi-value">{{ d.principalAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
-                <div class="kpi"><p class="kpi-label">Interest</p><p class="kpi-value">{{ d.interestAmount | currency:'INR':'symbol':'1.0-0':'en-IN' }} <span class="muted" style="font-size:12px">({{ d.interestRate }}% {{ d.interestType === 'MonthlyRecurring' ? '/mo' : 'flat' }})</span></p></div>
+                <div class="kpi"><p class="kpi-label">Accrued Interest</p><p class="kpi-value">{{ d.accruedInterest | currency:'INR':'symbol':'1.0-0':'en-IN' }} <span class="muted" style="font-size:12px">({{ d.interestRate }}% {{ d.interestType === 'MonthlyRecurring' ? '/mo' : 'flat' }})</span></p></div>
                 <div class="kpi"><p class="kpi-label">Tenure</p><p class="kpi-value">{{ d.tenureMonths }} month(s)</p></div>
                 <div class="kpi"><p class="kpi-label">Outstanding</p><p class="kpi-value danger">{{ d.outstandingBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
                 <div class="kpi"><p class="kpi-label">Paid (Principal)</p><p class="kpi-value success">{{ d.principalPaid | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>

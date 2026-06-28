@@ -569,12 +569,12 @@ export class AdminLoansComponent {
   exportCsv() {
     const r = this.result();
     if (!r || r.items.length === 0) return;
-    const headers = ['Loan Code', 'Member', 'Principal', 'Interest', 'Release Date', 'Expected Return', 'Tenure (M)', 'Status', 'Paid', 'Outstanding'];
+    const headers = ['Loan Code', 'Member', 'Principal', 'Accrued Interest', 'Release Date', 'Expected Return', 'Tenure (M)', 'Status', 'Paid', 'Outstanding'];
     const rows = r.items.map((l) => [
       l.loanCode,
       `${l.memberName} (${l.memberCode})`,
       l.principalAmount,
-      l.interestAmount,
+      l.accruedInterest,
       l.releaseDate.slice(0, 10),
       l.expectedReturnDate.slice(0, 10),
       l.tenureMonths,
