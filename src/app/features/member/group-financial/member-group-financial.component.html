@@ -2,7 +2,7 @@
   <header class="page-header">
     <div>
       <h1 class="page-title">Group Financial Details</h1>
-      <p class="muted">Read-only view of all members' financial obligations.</p>
+      <!-- <p class="muted">Read-only view of all members' financial obligations.</p> -->
     </div>
   </header>
 
@@ -14,7 +14,7 @@
   <div class="toast toast-error">{{ error() }}</div>
   } @else if (data(); as d) {
 
-  <div class="last-updated muted">Last updated: {{ d.lastUpdated | date:'dd MMM yyyy, HH:mm' }}</div>
+  <div class="last-updated muted">Pending details: {{ today }}</div>
 
   <section class="card table-card">
     <div class="table-scroll">
@@ -37,7 +37,6 @@
             <td class="muted">{{ (d.page - 1) * d.pageSize + i + 1 }}</td>
             <td>
               <strong>{{ m.fullName }}</strong>
-              <span class="muted member-code"> {{ m.memberCode }}</span>
             </td>
             <td class="text-right">{{ m.loanOutstanding | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
             <td class="text-right">{{ m.loanInterestDue | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>

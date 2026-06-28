@@ -173,9 +173,9 @@
             <p class="muted">Loading outstanding balance…</p>
             } @else if (outstanding(); as out) {
             <div class="grid-2" style="margin:12px 0;gap:8px">
-                <div class="kpi"><p class="kpi-label">Principal Outstanding</p><p class="kpi-value danger">{{ out.principalOutstanding | currency:'INR':'symbol':'1.0-2':'en-IN' }}</p></div>
-                <div class="kpi"><p class="kpi-label">Interest Outstanding</p><p class="kpi-value danger">{{ out.interestOutstanding | currency:'INR':'symbol':'1.0-2':'en-IN' }}</p></div>
-                <div class="kpi" style="grid-column: span 2"><p class="kpi-label">Total Outstanding</p><p class="kpi-value danger">{{ out.totalOutstanding | currency:'INR':'symbol':'1.0-2':'en-IN' }}</p></div>
+                <div class="kpi"><p class="kpi-label">Principal Outstanding</p><p class="kpi-value danger">{{ out.principalOutstanding | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+                <div class="kpi"><p class="kpi-label">Interest Outstanding</p><p class="kpi-value danger">{{ out.interestOutstanding | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
+                <div class="kpi" style="grid-column: span 2"><p class="kpi-label">Total Outstanding</p><p class="kpi-value danger">{{ out.totalOutstanding | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p></div>
             </div>
 
             <form [formGroup]="repayForm" (ngSubmit)="submitRepay()" class="stack">
@@ -201,7 +201,7 @@
                 <div class="field">
                     <label class="label">Principal Amount</label>
                     <input class="input" type="number" min="0" step="0.01" formControlName="principalAmount" placeholder="0.00" />
-                    <p class="muted" style="font-size:12px">Max: {{ out.principalOutstanding | currency:'INR':'symbol':'1.0-2':'en-IN' }}</p>
+                    <p class="muted" style="font-size:12px">Max: {{ out.principalOutstanding | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p>
                 </div>
                 }
 
@@ -209,7 +209,7 @@
                 <div class="field">
                     <label class="label">Interest Amount</label>
                     <input class="input" type="number" min="0" step="0.01" formControlName="interestAmount" placeholder="0.00" />
-                    <p class="muted" style="font-size:12px">Max: {{ out.interestOutstanding | currency:'INR':'symbol':'1.0-2':'en-IN' }}</p>
+                    <p class="muted" style="font-size:12px">Max: {{ out.interestOutstanding | currency:'INR':'symbol':'1.0-0':'en-IN' }}</p>
                 </div>
                 }
 

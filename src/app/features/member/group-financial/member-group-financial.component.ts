@@ -17,7 +17,7 @@ export class MemberGroupFinancialComponent {
   loading = signal(true);
   error = signal<string | null>(null);
 
-  readonly pageSize = 10;
+  readonly pageSize = 20;
 
   currentPage = signal(1);
 
@@ -44,4 +44,16 @@ export class MemberGroupFinancialComponent {
   hasOutstanding(totalOutstanding: number): boolean {
     return totalOutstanding > 0;
   }
+
+  readonly today: string = (() => {
+    const d = new Date();
+    const day = d.getDate();
+    const month = d.toLocaleString('en-US', { month: 'long' });
+    const year = d.getFullYear();
+    let hours = d.getHours();
+    const minutes = d.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'pm' : 'am';
+    hours = hours % 12 || 12;
+    return `${day}-${month}-${year}, ${hours}:${minutes}${ampm}`;
+  })();
 }
